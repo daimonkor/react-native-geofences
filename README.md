@@ -1,6 +1,6 @@
 # react-native-geofences
 
-test
+The library helps to create and manage geofences.
 
 ## Installation
 

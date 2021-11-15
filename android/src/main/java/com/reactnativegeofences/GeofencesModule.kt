@@ -15,10 +15,22 @@ class GeofencesModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     // See https://reactnative.dev/docs/native-modules-android
     @ReactMethod
     fun multiply(a: Int, b: Int, promise: Promise) {
-    
+
       promise.resolve(a * b)
-    
+
     }
 
-    
+    @ReactMethod
+    fun startMonitoring(promise: Promise) {
+
+      promise.resolve(true)
+
+    }
+
+    @ReactMethod
+    fun stopMonitoring(promise: Promise) {
+
+      promise.resolve(true)
+
+    }
 }

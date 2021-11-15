@@ -20,3 +20,11 @@ const Geofences = NativeModules.Geofences
 export function multiply(a: number, b: number): Promise<number> {
   return Geofences.multiply(a, b);
 }
+
+export function startMonitoring(): Promise<void> {
+  return Geofences.startMonitoring();
+}
+
+export function stopMonitoring(): Promise<void> {
+  return Geofences.stopMonitoring();
+}
