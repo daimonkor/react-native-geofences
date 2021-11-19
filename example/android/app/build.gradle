@@ -182,7 +182,7 @@ dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
-
+  implementation 'com.google.code.gson:gson:2.8.9'
 
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
@@ -203,7 +203,6 @@ dependencies {
     } else {
         implementation jscFlavor
     }
-
     implementation project(':reactnativegeofences')
 }
 
@@ -214,4 +213,5 @@ task copyDownloadableDepsToLibs(type: Copy) {
     into 'libs'
 }
 
-apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle")
+apply plugin: 'kotlin-android'; applyNativeModulesAppBuildGradle(project)

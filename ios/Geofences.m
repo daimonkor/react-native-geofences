@@ -2,9 +2,9 @@
 
 @interface RCT_EXTERN_MODULE(Geofences, NSObject)
 
-RCT_EXTERN_METHOD(multiply:(float)a withB:(float)b
+/*RCT_EXTERN_METHOD(multiply:(float)a withB:(float)b
                  withResolver:(RCTPromiseResolveBlock)resolve
-                 withRejecter:(RCTPromiseRejectBlock)reject)
+                 withRejecter:(RCTPromiseRejectBlock)reject)*/
 
 RCT_EXTERN_METHOD(startMonitoring:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject)
