@@ -124,7 +124,7 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
 
   @RequiresApi(Build.VERSION_CODES.Q)
   @ReactMethod
-  fun isAcceptedPermissions(promise: Promise) {
+  fun permissionsStatus(promise: Promise) {
     (this.currentActivity as PermissionAwareActivity?)?.let {
       val permissions = arrayOf(
         permission.ACCESS_FINE_LOCATION,

@@ -8,6 +8,7 @@ import androidx.annotation.RequiresApi
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.icebergteam.timberjava.Timber
+import com.reactnativegeofences.GeofenceHelper
 import com.reactnativegeofences.GeofenceHelper.Companion.GEOFENCES_LIST_KEY
 import com.reactnativegeofences.GeofenceHelper.Companion.TRANSITION_TYPE_KEY
 import com.reactnativegeofences.models.GeofenceModel
@@ -75,6 +76,7 @@ class OnGeofenseEventService : JobService() {
           this.post(it, object : Callback {
             override fun onFailure(call: Call, e: IOException) {
               Timber.e("Error: %s", e)
+            //  GeofenceHelper(applicationContext).stopMonitoring(null)
             }
 
             override fun onResponse(call: Call, response: Response) {

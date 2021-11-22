@@ -153,8 +153,9 @@ class GeofenceHelper(private val context: Context) {
     }))
   }
 
-  fun stopMonitoring(promise: Promise) {
+  fun stopMonitoring(promise: Promise?) {
     try {
+      Timber.e("Stop monitoring")
       mGeofencingClient.removeGeofences(
         Intent(
           this.context,
@@ -167,12 +168,12 @@ class GeofenceHelper(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT
           )
         }).addOnFailureListener {
-        promise.reject(it)
+        promise?.reject(it)
       }.addOnSuccessListener {
-        promise.resolve(true)
+        promise?.resolve(true)
       }
     } catch (exception: Exception) {
-      promise.reject(exception)
+      promise?.reject(exception)
     }
   }
 

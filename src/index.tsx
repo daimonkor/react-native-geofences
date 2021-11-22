@@ -94,8 +94,8 @@ export function requestPermissions(): Promise<PermissionData> {
     : Promise.resolve({ result: true } as PermissionData);
 }
 
-export function isAcceptedPermissions(): Promise<PermissionData> {
-  return Geofences.isAcceptedPermissions();
+export function permissionsStatus(): Promise<PermissionData> {
+  return Geofences.permissionsStatus();
 }
 
 export function addGeofences(

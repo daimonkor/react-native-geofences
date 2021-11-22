@@ -7,7 +7,7 @@ import {
   addGeofences,
   NotificationData,
   requestPermissions,
-  isAcceptedPermissions,
+  permissionsStatus,
   removeGeofences,
   TypeTransactions,
   InitialTriggers,
@@ -131,7 +131,7 @@ export default function App() {
   >(null);
 
   React.useEffect(() => {
-    isAcceptedPermissions()
+    permissionsStatus()
       .then(setPermissionData)
       .catch((error) => setPermissionData(error.message));
   }, []);
@@ -165,7 +165,7 @@ export default function App() {
                   console.log('Error when permissions requested', error);
                 })
                 .then((_) => {
-                  return isAcceptedPermissions();
+                  return permissionsStatus();
                 })
                 .then((data) => {
                   setPermissionData(data);
