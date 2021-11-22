@@ -9,6 +9,7 @@ import com.facebook.react.modules.core.PermissionListener
 import com.facebook.react.modules.core.PermissionAwareActivity
 import com.facebook.react.bridge.WritableNativeMap
 import android.content.pm.PackageManager
+import com.google.gson.Gson
 import com.icebergteam.timberjava.LineNumberDebugTree
 import com.icebergteam.timberjava.Timber
 import com.reactnativegeofences.models.*
@@ -80,7 +81,7 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
       (it.get("typeTransactions") as ArrayList<*>).toArray().forEach {
         it as HashMap<*, *>
         transactionTypes[TypeTransactions.values().firstOrNull { value ->  value.typeTransaction ==  (it.get("type") as Double).toInt()}?: TypeTransactions.UNKNOWN ] =
-          (it.get("notification") as HashMap<String, String>).let {
+          (it.get("notification") as? HashMap<String, String>)?.let {
             NotificationDataModel(
               message = it.get("message") ?: "",
               actionUri = it.get("actionUri")
@@ -104,7 +105,7 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
       )
     }
     mGeofenceHelper.addGeofences(listOf(geofencesHolder))
-    promise.resolve(true)
+    promise.resolve(Gson().toJson(geofencesHolder))
   }
 
   @RequiresApi(Build.VERSION_CODES.Q)

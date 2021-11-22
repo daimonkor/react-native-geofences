@@ -1,8 +1,5 @@
 package com.example.reactnativegeofences;
 
-import static com.icebergteam.timberjava.Timber.DebugTree.ANONYMOUS_CLASS;
-import static com.icebergteam.timberjava.Timber.DebugTree.MAX_TAG_LENGTH;
-
 import android.app.Application;
 import android.content.Context;
 import android.os.Build;
@@ -60,7 +57,6 @@ public class MainApplication extends Application implements ReactApplication {
   @Override
   public void onCreate() {
     super.onCreate();
-    this.initLogger();
     SoLoader.init(this, /* native exopackage */ false);
     initializeFlipper(this, getReactNativeHost().getReactInstanceManager()); // Remove this line if you don't want Flipper enabled
   }

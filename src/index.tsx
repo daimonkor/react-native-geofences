@@ -63,7 +63,7 @@ export interface GeofenceHolder {
 }
 
 export interface NotificationData {
-  message: string;
+  message?: string | null;
   actionUri?: string | null;
 }
 

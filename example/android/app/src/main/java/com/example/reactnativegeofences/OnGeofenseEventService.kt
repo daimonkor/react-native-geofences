@@ -31,6 +31,8 @@ class OnGeofenseEventService : JobService() {
   init {
     val logging = HttpLoggingInterceptor()
     logging.setLevel(HttpLoggingInterceptor.Level.BODY)
+    logging.redactHeader("Authorization");
+    logging.redactHeader("Cookie");
     client = OkHttpClient.Builder()
       .addInterceptor(logging)
       .build()
@@ -66,7 +68,7 @@ class OnGeofenseEventService : JobService() {
       it.filter {
         it.key.typeTransaction == transitionType
       }.forEach {
-        val requestModel = Gson().fromJson<RequestModel>(
+        Gson().fromJson<RequestModel>(
           Gson().toJson(it.value.second),
           object : TypeToken<RequestModel>() {}.type
         )?.let {

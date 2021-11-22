@@ -5,4 +5,4 @@ import kotlinx.parcelize.Parcelize
 
 
 @Parcelize
-data class NotificationDataModel(val message: String, val actionUri: String?) : Parcelable
+data class NotificationDataModel(val message: String?, val actionUri: String?) : Parcelable

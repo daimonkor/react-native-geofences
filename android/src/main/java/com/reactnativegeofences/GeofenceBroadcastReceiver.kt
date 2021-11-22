@@ -101,7 +101,9 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
       data.forEach {
         it.typeTransactions[TypeTransactions.toValue(geofenceTransition)]?.first?.let{
-          sendNotification(context, it.message, it.actionUri)
+          if(it.message?.isNotEmpty() == true) {
+            sendNotification(context, it.message, it.actionUri)
+          }
         }
       }
       Timber.i("%s", geofenceTransitionDetails)

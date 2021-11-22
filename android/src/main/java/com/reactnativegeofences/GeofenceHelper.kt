@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.PromiseImpl
@@ -17,6 +16,7 @@ import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.location.LocationServices
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.icebergteam.timberjava.Timber
 import com.reactnativegeofences.models.*
 import java.lang.Exception
 
@@ -26,7 +26,6 @@ class GeofenceHelper(private val context: Context) {
   private val mGeofencingClient: GeofencingClient = LocationServices.getGeofencingClient(context);
 
   companion object {
-    const val TAG = "GeofenceHelper"
     const val CACHE_FILE_NAME = "GEOFENCES_CACHE"
     const val CACHE_KEY = "GEOFENCES_KEY"
     const val GEOFENCES_LIST_KEY = "GEOFENCES_LIST_KEY"
@@ -57,6 +56,11 @@ class GeofenceHelper(private val context: Context) {
 
   private fun createGeofences(callback: (geofenceIdList: Array<String>?, exception: Exception?) -> Unit) {
     try {
+      if(mGeofencesHolderList.isEmpty()){
+        callback(null, Exception("Missing geofences"))
+        Timber.e("Please add geofences")
+        return
+      }
       val geofenceIdList = ArrayList<String>()
       mGeofencesHolderList.forEach {
         if (ActivityCompat.checkSelfPermission(
@@ -121,7 +125,7 @@ class GeofenceHelper(private val context: Context) {
 
   fun startMonitoring(promise: Promise?) {
     stopMonitoring(PromiseImpl({
-      Log.e(TAG, "Stop geofences monitoring successfully")
+      Timber.e("Stop geofences monitoring successfully")
       this.createGeofences { idsList, exception ->
         if (exception != null) {
           promise?.reject(exception)
@@ -134,7 +138,7 @@ class GeofenceHelper(private val context: Context) {
         }
       }
     }, {
-      Log.e(TAG, "Stop geofences monitoring failed: $it")
+      Timber.e("Stop geofences monitoring failed: $it")
       this.createGeofences { idsList, exception ->
         if (exception != null) {
           promise?.reject(exception)
