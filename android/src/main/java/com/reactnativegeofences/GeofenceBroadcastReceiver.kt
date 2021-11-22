@@ -136,7 +136,6 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
       PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
     val builder = NotificationCompat.Builder(context, "geofences_alarm")
       .setContentTitle(notificationDetails)
-      .setContentText("Click notification to remove")
       .setContentIntent(pendingIntent)
       .setAutoCancel(true)
       .setSmallIcon(bundle.getInt("notification_small_icon"))

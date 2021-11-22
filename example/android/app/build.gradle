@@ -119,6 +119,13 @@ def jscFlavor = 'org.webkit:android-jsc:+'
  */
 def enableHermes = project.ext.react.get("enableHermes", false);
 
+ext {
+  gson = "2.8.9"
+  okhttp = "4.9.2"
+  loggingInterceptor = "4.9.2"
+  timberjava = "0.0.2"
+}
+
 android {
   compileSdkVersion rootProject.ext.compileSdkVersion
 
@@ -187,10 +194,10 @@ dependencies {
   implementation fileTree(dir: "libs", include: ["*.jar"])
   //noinspection GradleDynamicVersion
   implementation "com.facebook.react:react-native:+"  // From node_modules
-  implementation 'com.google.code.gson:gson:2.8.9'
-  implementation("com.squareup.okhttp3:okhttp:4.9.2")
-  implementation("com.squareup.okhttp3:logging-interceptor:4.9.2")
-  implementation ('com.github.icebergteam:timberjava:0.0.2')  {
+  implementation "com.google.code.gson:gson:$gson"
+  implementation "com.squareup.okhttp3:okhttp:$okhttp"
+  implementation "com.squareup.okhttp3:logging-interceptor:$loggingInterceptor"
+  implementation ("com.github.icebergteam:timberjava:$timberjava")  {
     exclude group: 'com.intellij', module: 'annotations'
   }
 
