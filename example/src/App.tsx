@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { StyleSheet, View, Text, Button } from 'react-native';
+import { StyleSheet, View, Text, Button, Platform } from 'react-native';
 import {
   stopMonitoring,
   startMonitoring,
@@ -10,6 +10,8 @@ import {
   isAcceptedPermissions,
   removeGeofences,
   isExistsGeofenceById,
+  TypeTransactions,
+  InitialTriggers,
 } from 'react-native-geofences';
 
 export default function App() {
@@ -25,19 +27,35 @@ export default function App() {
           expiredDuration: 30000000,
           typeTransactions: [
             {
-              type: 1,
+              type: TypeTransactions.ENTER,
               notification: {
                 message: 'Enter to first point',
-                request: 'https://test1.com',
+                actionUri: 'https://test1.com',
               } as NotificationData,
+              extraData: {
+                headers: {
+                  token: 'fsfssfsdfsdfsdfsdf',
+                  appId: 'dsgfsdgdfgfdg',
+                },
+                body: { border_id: 10, state: 'enter' },
+                url: 'https://basjeapi.com',
+              },
             },
 
             {
-              type: 2,
+              type: TypeTransactions.EXIT,
               notification: {
                 message: 'Exit from first point',
-                request: 'https://test.com',
+                actionUri: 'https://test.com',
               } as NotificationData,
+              extraData: {
+                headers: {
+                  token: 'fsfssfsdfsdfsdfsdf',
+                  appId: 'dsgfsdgdfgfdg',
+                },
+                body: { border_id: 10, state: 'exit' },
+                url: 'https://basjeapi.com',
+              },
             },
           ],
         },
@@ -48,24 +66,67 @@ export default function App() {
           expiredDuration: 30000000,
           typeTransactions: [
             {
-              type: 0,
+              type: TypeTransactions.ENTER,
               notification: {
                 message: 'Enter to second point',
-                request: 'deeplink',
+                actionUri: 'deeplink',
               } as NotificationData,
             },
 
             {
-              type: 1,
+              type: TypeTransactions.EXIT,
               notification: {
                 message: 'Exit from second point',
-                request: 'deeplink',
+                actionUri: 'deeplink',
               } as NotificationData,
             },
           ],
         },
+
+        {
+          position: { latitude: 40.7415, longitude: -74.0034, radius: 100 },
+          name: 'Second point',
+          expiredDuration: 30000000,
+          typeTransactions: [
+            {
+              type: TypeTransactions.EXIT,
+              notification: {
+                message: 'Exit from second point',
+                actionUri: 'deeplink',
+              } as NotificationData,
+              extraData: {
+                headers: {
+                  token: 'fsfssfsdfsdfsdfsdf',
+                  appId: 'dsgfsdgdfgfdg',
+                },
+                body: { border_id: 20, state: 'exit' },
+                url: 'https://bajseapi.com',
+              },
+            },
+
+            {
+              type: TypeTransactions.ENTER,
+              notification: {
+                message: 'Enter to second point',
+                actionUri: 'deeplink',
+              } as NotificationData,
+              extraData: {
+                headers: {
+                  token: 'fsfssfsdfsdfsdfsdf',
+                  appId: 'dsgfsdgdfgfdg',
+                },
+                body: { border_id: 20, state: 'enter' },
+                url: 'https://basejapi.com',
+              },
+            },
+          ],
+        },
       ],
-      initialTriggers: [0, 1, 2],
+      initialTriggers: [
+        InitialTriggers.DWELL,
+        InitialTriggers.ENTER,
+        InitialTriggers.EXIT,
+      ],
     });
     // .then((value) => {
     //   return startMonitoring();

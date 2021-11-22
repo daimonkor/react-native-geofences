@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.os.Parcelable
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.facebook.react.bridge.Promise
@@ -18,34 +17,8 @@ import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.location.LocationServices
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import kotlinx.android.parcel.Parcelize
+import com.reactnativegeofences.models.*
 import java.lang.Exception
-
-@Parcelize
-data class Coordinate(val longitude: Double, val latitude: Double, val radius: Int? = null) :
-  Parcelable
-
-interface GeofenceAtCache {
-  val atGeofenceHolderModelListPosition: Int
-  val atGeofenceModelListPosition: Int
-}
-
-@Parcelize
-data class GeofenceModel(
-  val position: Coordinate,
-  val name: String,
-  val typeTransactions: Map<Int, NotificationDataModel>,
-  val expiredDuration: Int,
-  val id: String
-) : Parcelable
-
-data class GeofenceHolderModel(
-  var geofenceModels: ArrayList<GeofenceModel> = ArrayList(),
-  var initialTriggers: IntArray = arrayOf<Int>().toIntArray()
-)
-
-@Parcelize
-data class NotificationDataModel(val message: String, val request: String?) : Parcelable
 
 class GeofenceHelper(private val context: Context) {
   var mGeofencesHolderList = ArrayList<GeofenceHolderModel>()
@@ -79,11 +52,6 @@ class GeofenceHelper(private val context: Context) {
       }
     }
     mGeofencesHolderList.addAll(geofencesHolderList)
-
-    Log.e(
-      TAG,
-      this.isExistsGeofence("3d3d6602-2852-44ce-9bd6-bc294ef849cc").atGeofenceHolderModelListPosition.toString()
-    )
     this.saveGeofencesDataToCache(this.mGeofencesHolderList)
   }
 
@@ -114,10 +82,10 @@ class GeofenceHelper(private val context: Context) {
                 .setTransitionTypes(it.typeTransactions.map {
                   it.key
                 }.let {
-                  var type = it.first()
+                  var type = it.first().typeTransaction
                   it.forEachIndexed { index, i ->
                     if (index != 0) {
-                      type = type or i;
+                      type = type or i.typeTransaction;
                     }
                   }
                   type
@@ -125,10 +93,10 @@ class GeofenceHelper(private val context: Context) {
                 .build()
             })
           setInitialTrigger(it.initialTriggers.let {
-            var trigger = it.first()
+            var trigger = it.first().trigger
             it.forEachIndexed { index, i ->
               if (index != 0) {
-                trigger = trigger or i
+                trigger = trigger or i.trigger
               }
             }
             trigger
@@ -153,10 +121,10 @@ class GeofenceHelper(private val context: Context) {
 
   fun startMonitoring(promise: Promise?) {
     stopMonitoring(PromiseImpl({
-      Log.e(GeofencesModule.TAG, "Stop geofences monitoring successfully")
+      Log.e(TAG, "Stop geofences monitoring successfully")
       this.createGeofences { idsList, exception ->
         if (exception != null) {
-          promise?.reject(exception.localizedMessage)
+          promise?.reject(exception)
         } else {
           val promiseList = WritableNativeArray()
           idsList?.forEach {
@@ -166,10 +134,10 @@ class GeofenceHelper(private val context: Context) {
         }
       }
     }, {
-      Log.e(GeofencesModule.TAG, "Stop geofences monitoring failed: $it")
+      Log.e(TAG, "Stop geofences monitoring failed: $it")
       this.createGeofences { idsList, exception ->
         if (exception != null) {
-          promise?.reject(exception.localizedMessage)
+          promise?.reject(exception)
         } else {
           val promiseList = WritableNativeArray()
           idsList?.forEach {
@@ -204,29 +172,12 @@ class GeofenceHelper(private val context: Context) {
     }
   }
 
-  fun isExistsGeofence(id: String): GeofenceAtCache {
-    this.mGeofencesHolderList.forEachIndexed { indexGeofenceHolderModelListPosition, geofencesHolder ->
-      geofencesHolder.geofenceModels.forEachIndexed { indexGeofenceModelListPosition, geofenceModel ->
-        if (geofenceModel.id == id) return object : GeofenceAtCache {
-          override val atGeofenceHolderModelListPosition: Int
-            get() = indexGeofenceHolderModelListPosition
-          override val atGeofenceModelListPosition: Int
-            get() = indexGeofenceModelListPosition
-        }
-      }
-    }
-    return object : GeofenceAtCache {
-      override val atGeofenceHolderModelListPosition: Int
-        get() = -1
-      override val atGeofenceModelListPosition: Int
-        get() = -1
-    }
-  }
+  fun isExistsGeofence(id: String) = this.getGeofencesByIds(arrayOf(id)).firstOrNull() != null
 
   fun getGeofencesByIds(ids: Array<String>): List<GeofenceModel> {
     val list = ArrayList<GeofenceModel>()
-    this.mGeofencesHolderList.forEachIndexed { indexGeofenceHolderModelListPosition, geofencesHolder ->
-      geofencesHolder.geofenceModels.forEachIndexed { indexGeofenceModelListPosition, geofenceModel ->
+    this.mGeofencesHolderList.forEachIndexed { _, geofencesHolder ->
+      geofencesHolder.geofenceModels.forEachIndexed { _, geofenceModel ->
         if (ids.contains(geofenceModel.id)) {
           list.add(geofenceModel)
         }
@@ -238,7 +189,7 @@ class GeofenceHelper(private val context: Context) {
   fun isExistsGeofence(coordinate: Coordinate): GeofenceAtCache {
     this.mGeofencesHolderList.forEachIndexed { indexGeofenceHolderModelListPosition, geofencesHolder ->
       geofencesHolder.geofenceModels.forEachIndexed { indexGeofenceModelListPosition, geofenceModel ->
-        if (geofenceModel.position.latitude == coordinate.latitude && geofenceModel.position.longitude == coordinate.longitude) return object :
+        if (geofenceModel.position.latitude == coordinate.latitude && geofenceModel.position.longitude == coordinate.longitude && geofenceModel.position.radius == coordinate.radius) return object :
           GeofenceAtCache {
           override val atGeofenceHolderModelListPosition: Int
             get() = indexGeofenceHolderModelListPosition

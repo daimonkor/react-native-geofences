@@ -6,6 +6,29 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo managed workflow\n';
 
+type AndroidInitialTriggersType = 1 | 2 | 4;
+type AndroidTypeTransactionsType = 1 | 2 | 4;
+
+export enum InitialTriggers {
+  ENTER = (Platform.OS === 'android' ? 1 : 1) as
+    | AndroidInitialTriggersType
+    | number,
+  EXIT = Platform.OS === 'android' ? 2 : 2,
+  DWELL = Platform.OS === 'android' ? 4 : 4,
+}
+
+export enum TypeTransactions {
+  ENTER = (Platform.OS === 'android' ? 1 : 1) as
+    | AndroidTypeTransactionsType
+    | number,
+  EXIT = (Platform.OS === 'android' ? 2 : 2) as
+    | AndroidTypeTransactionsType
+    | number,
+  DWELL = (Platform.OS === 'android' ? 4 : 4) as
+    | AndroidTypeTransactionsType
+    | number,
+}
+
 const Geofences = NativeModules.Geofences
   ? NativeModules.Geofences
   : new Proxy(
@@ -26,12 +49,16 @@ export interface Coordinate {
 export interface Geofence {
   position: Coordinate;
   name: string;
-  typeTransactions: { type: number; notification: NotificationData }[];
+  typeTransactions: {
+    type: AndroidTypeTransactionsType | number;
+    notification?: NotificationData | null;
+    extraData?: Object | null;
+  }[];
   expiredDuration: number;
 }
 
 export interface GeofenceHolder {
-  initialTriggers?: number[];
+  initialTriggers?: AndroidInitialTriggersType[] | number[];
   geofences: Geofence[];
 }
 
@@ -53,16 +80,18 @@ export function stopMonitoring(): Promise<boolean> {
 }
 
 export function requestPermissions(): Promise<PermissionData> {
-  return Geofences.requestPermissions(
-    'android.permission.ACCESS_FINE_LOCATION'
-  ).then((value: PermissionData) => {
-    return Promise.all([
-      Promise.resolve(value),
-      Geofences.requestPermissions(
-        'android.permission.ACCESS_BACKGROUND_LOCATION'
-      ),
-    ]);
-  });
+  return Platform.OS === 'android'
+    ? Geofences.requestPermissions(
+        'android.permission.ACCESS_FINE_LOCATION'
+      ).then((value: PermissionData) => {
+        return Promise.all([
+          Promise.resolve(value),
+          Geofences.requestPermissions(
+            'android.permission.ACCESS_BACKGROUND_LOCATION'
+          ),
+        ]);
+      })
+    : Promise.resolve({ result: true } as PermissionData);
 }
 
 export function isAcceptedPermissions(): Promise<PermissionData> {

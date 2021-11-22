@@ -4,7 +4,6 @@ import android.app.NotificationChannel
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import com.google.android.gms.location.GeofenceStatusCodes
 import com.google.android.gms.location.GeofencingEvent
 import android.text.TextUtils
@@ -20,6 +19,7 @@ import android.content.ComponentName
 import android.content.Context.NOTIFICATION_SERVICE
 import android.content.pm.PackageManager
 import android.content.pm.ApplicationInfo
+import android.net.Uri
 import android.os.Build
 import android.os.PersistableBundle
 import androidx.annotation.RequiresApi
@@ -27,12 +27,11 @@ import com.google.android.gms.location.Geofence.*
 import com.google.gson.Gson
 import com.reactnativegeofences.GeofenceHelper.Companion.GEOFENCES_LIST_KEY
 import com.reactnativegeofences.GeofenceHelper.Companion.TRANSITION_TYPE_KEY
+import com.icebergteam.timberjava.Timber
+import com.reactnativegeofences.models.TypeTransactions
 
 
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
-  companion object {
-    const val TAG = "GeofenceBroadcastRec"
-  }
 
   private fun getGeofenceTransitionDetails(event: GeofencingEvent): String {
     val transitionString: String
@@ -65,7 +64,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
     if (geofencingEvent.hasError()) {
       val errorMessage = GeofenceStatusCodes
         .getStatusCodeString(geofencingEvent.errorCode)
-      Log.e(TAG, errorMessage)
+      Timber.e("%s", errorMessage)
       return
     }
 
@@ -99,17 +98,21 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
         .setPersisted(true)
         .build()
       scheduler.schedule(jobInfo)
-      sendNotification(context, geofenceTransitionDetails)
-      Log.i(TAG, geofenceTransitionDetails)
+
+      data.forEach {
+        it.typeTransactions[TypeTransactions.toValue(geofenceTransition)]?.first?.let{
+          sendNotification(context, it.message, it.actionUri)
+        }
+      }
+      Timber.i("%s", geofenceTransitionDetails)
     } else {
-      Log.e(
-        TAG, "Error: " +
+      Timber.e("%s",  "Error: " +
           geofenceTransition
       )
     }
   }
 
-  private fun sendNotification(context: Context, notificationDetails: String) {
+  private fun sendNotification(context: Context, notificationDetails: String, actionUri: String?) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       val name = "Geofences Alarm"
       val descriptionText = "You will get important notifications about enter or exist geofences"
@@ -123,7 +126,10 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
     val ai: ApplicationInfo =
       context.packageManager.getApplicationInfo(context.packageName, PackageManager.GET_META_DATA)
     val bundle = ai.metaData
-    val notificationIntent = Intent()
+    val notificationIntent = Intent().apply {
+      action = Intent.ACTION_VIEW
+      data = Uri.parse(actionUri)
+    }
     val pendingIntent =
       PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
     val builder = NotificationCompat.Builder(context, "geofences_alarm")
@@ -135,6 +141,6 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
     val notificationManager =
       context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager?
 
-    notificationManager?.notify(12, builder.build())
+    notificationManager?.notify(Random().nextInt(), builder.build())
   }
 }
