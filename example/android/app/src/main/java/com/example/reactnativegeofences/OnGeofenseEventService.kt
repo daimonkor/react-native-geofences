@@ -59,42 +59,49 @@ class OnGeofenseEventService : JobService() {
   }
 
   override fun onStartJob(params: JobParameters?): Boolean {
-    val transitionType = params?.extras?.getInt(TRANSITION_TYPE_KEY)
-    val geofencesList = params?.extras?.getString(GEOFENCES_LIST_KEY)?.let {
-      Gson().fromJson<Array<GeofenceModel>>(it, object : TypeToken<Array<GeofenceModel>>() {}.type)
-    }
-    geofencesList?.map {
-      it.typeTransactions.entries
-    }?.forEach {
-      it.filter {
-        it.key.typeTransaction == transitionType
-      }.forEach {
-        Gson().fromJson<RequestModel>(
-          Gson().toJson(it.value.second),
-          object : TypeToken<RequestModel>() {}.type
-        )?.let {
-          this.post(it, object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-              Timber.e("Error: %s", e)
-            //  GeofenceHelper(applicationContext).stopMonitoring(null)
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-              Timber.e("Response: %s", response.body?.toString() ?: "no response")
-            }
-
-          })
-        }
-        Timber.e("Request model: %s", (it.toString() ?: "none") + " " + transitionType)
+    try {
+      val transitionType = params?.extras?.getInt(TRANSITION_TYPE_KEY)
+      val geofencesList = params?.extras?.getString(GEOFENCES_LIST_KEY)?.let {
+        Gson().fromJson<Array<GeofenceModel>>(
+          it,
+          object : TypeToken<Array<GeofenceModel>>() {}.type
+        )
       }
+      geofencesList?.map {
+        it.typeTransactions.entries
+      }?.forEach {
+        it.filter {
+          it.key.typeTransaction == transitionType
+        }.forEach {
+          Gson().fromJson<RequestModel>(
+            Gson().toJson(it.value.second),
+            object : TypeToken<RequestModel>() {}.type
+          )?.let {
+            this.post(it, object : Callback {
+              override fun onFailure(call: Call, e: IOException) {
+                Timber.e("Error: %s", e)
+                //  GeofenceHelper(applicationContext).stopMonitoring(null)
+              }
+
+              override fun onResponse(call: Call, response: Response) {
+                Timber.e("Response: %s", response.body?.toString() ?: "no response")
+              }
+
+            })
+          }
+          Timber.e("Request model: %s", (it.toString() ?: "none") + " " + transitionType)
+        }
+      }
+      val action =
+        geofencesList?.get(0)?.typeTransactions?.get(TypeTransactions.toValue(transitionType))
+      val toast = Toast.makeText(
+        this.applicationContext,
+        action?.first?.message + " " + action?.first?.actionUri, Toast.LENGTH_LONG
+      )
+      toast.show()
+    }catch (exception: Exception){
+      Timber.e("Error at service: %s", exception)
     }
-    val action =
-      geofencesList?.get(0)?.typeTransactions?.get(TypeTransactions.toValue(transitionType))
-    val toast = Toast.makeText(
-      this.applicationContext,
-      action?.first?.message + " " + action?.first?.actionUri, Toast.LENGTH_LONG
-    )
-    toast.show()
     return true
   }
 

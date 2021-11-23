@@ -40,15 +40,15 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
     val formattedDate: String = df.format(c.time)
     val geofenceTransition = event.geofenceTransition
     transitionString = when (geofenceTransition) {
-        GEOFENCE_TRANSITION_ENTER -> {
-          "IN-$formattedDate"
-        }
-        GEOFENCE_TRANSITION_EXIT -> {
-          "OUT-$formattedDate"
-        }
-        else -> {
-          "OTHER-$formattedDate"
-        }
+      GEOFENCE_TRANSITION_ENTER -> {
+        "IN-$formattedDate"
+      }
+      GEOFENCE_TRANSITION_EXIT -> {
+        "OUT-$formattedDate"
+      }
+      else -> {
+        "OTHER-$formattedDate"
+      }
     }
     val triggeringIDs: MutableList<String?>
     triggeringIDs = ArrayList()
@@ -60,57 +60,62 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
   @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
   override fun onReceive(context: Context, intent: Intent) {
-    val geofencingEvent = GeofencingEvent.fromIntent(intent)
-    if (geofencingEvent.hasError()) {
-      val errorMessage = GeofenceStatusCodes
-        .getStatusCodeString(geofencingEvent.errorCode)
-      Timber.e("%s", errorMessage)
-      return
-    }
+    try {
+      val geofencingEvent = GeofencingEvent.fromIntent(intent)
+      if (geofencingEvent.hasError()) {
+        val errorMessage = GeofenceStatusCodes
+          .getStatusCodeString(geofencingEvent.errorCode)
+        Timber.e("%s", errorMessage)
+        return
+      }
+      val geofenceTransition = geofencingEvent.geofenceTransition
+      if (geofenceTransition == GEOFENCE_TRANSITION_ENTER ||
+        geofenceTransition == GEOFENCE_TRANSITION_EXIT || geofenceTransition == GEOFENCE_TRANSITION_DWELL
+      ) {
+        Timber.i("%s", getGeofenceTransitionDetails(geofencingEvent))
+        val data =
+          GeofenceHelper(context).getGeofencesByIds(geofencingEvent.triggeringGeofences.map {
+            it.requestId
+          }.toTypedArray()).toTypedArray()
 
-    val geofenceTransition = geofencingEvent.geofenceTransition
-    if (geofenceTransition == GEOFENCE_TRANSITION_ENTER ||
-      geofenceTransition == GEOFENCE_TRANSITION_EXIT || geofenceTransition == GEOFENCE_TRANSITION_DWELL
-    ) {
-      val geofenceTransitionDetails = getGeofenceTransitionDetails(
-        geofencingEvent
-      )
-      val ai: ApplicationInfo =
-        context.packageManager.getApplicationInfo(context.packageName, PackageManager.GET_META_DATA)
-      val bundle = ai.metaData
-
-      val data =
-        GeofenceHelper(context).getGeofencesByIds(geofencingEvent.triggeringGeofences.map {
-          it.requestId
-        }.toTypedArray()).toTypedArray()
-
-      val scheduler: JobScheduler =
-        (context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler)
-      val mServieComponent = ComponentName(bundle.getString("GEOFENCE_SERVICE_PACKAGE_NAME", ""), bundle.getString("GEOFENCE_SERVICE_CLASS_NAME", ""))
-      val jobInfo = JobInfo.Builder(126, mServieComponent)
-        .setExtras(PersistableBundle().apply {
-          putString(GEOFENCES_LIST_KEY, Gson().toJson(data))
-          putInt(TRANSITION_TYPE_KEY, geofencingEvent.geofenceTransition)
-        })
-        .setMinimumLatency(10)
-        .setOverrideDeadline(5000)
-        .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-        .setPersisted(true)
-        .build()
-      scheduler.schedule(jobInfo)
-
-      data.forEach {
-        it.typeTransactions[TypeTransactions.toValue(geofenceTransition)]?.first?.let{
-          if(it.message?.isNotEmpty() == true) {
-            sendNotification(context, it.message, it.actionUri)
+        val ai: ApplicationInfo =
+          context.packageManager.getApplicationInfo(
+            context.packageName,
+            PackageManager.GET_META_DATA
+          )
+        val bundle = ai.metaData
+        val scheduler: JobScheduler =
+          (context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler)
+        val serviceComponent = ComponentName(
+          bundle.getString("GEOFENCE_SERVICE_PACKAGE_NAME", ""),
+          bundle.getString("GEOFENCE_SERVICE_CLASS_NAME", "")
+        )
+        val jobInfo = JobInfo.Builder(126, serviceComponent)
+          .setExtras(PersistableBundle().apply {
+            putString(GEOFENCES_LIST_KEY, Gson().toJson(data))
+            putInt(TRANSITION_TYPE_KEY, geofencingEvent.geofenceTransition)
+          })
+          .setMinimumLatency(10)
+          .setOverrideDeadline(5000)
+          .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+          .setPersisted(true)
+          .build()
+        scheduler.schedule(jobInfo)
+        data.forEach {
+          it.typeTransactions[TypeTransactions.toValue(geofenceTransition)]?.first?.let {
+            if (it.message?.isNotEmpty() == true) {
+              sendNotification(context, it.message, it.actionUri)
+            }
           }
         }
+      } else {
+        Timber.e(
+          "%s", "Error: " +
+            geofenceTransition
+        )
       }
-      Timber.i("%s", geofenceTransitionDetails)
-    } else {
-      Timber.e("%s",  "Error: " +
-          geofenceTransition
-      )
+    } catch (exception: Exception) {
+      Timber.e("Can not find geofence service")
     }
   }
 
