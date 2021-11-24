@@ -115,7 +115,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
         )
       }
     } catch (exception: Exception) {
-      Timber.e("Can not find geofence service")
+      Timber.e("Can not find geofence service: %s", exception)
     }
   }
 
@@ -135,7 +135,9 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
     val bundle = ai.metaData
     val notificationIntent = Intent().apply {
       action = Intent.ACTION_VIEW
-      data = Uri.parse(actionUri)
+      actionUri?.let{
+         data = Uri.parse(actionUri)
+      }
     }
     val pendingIntent =
       PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
@@ -146,7 +148,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
       .setSmallIcon(bundle.getInt("notification_small_icon"))
     val notificationManager =
       context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager?
-
+    Timber.e("Show notification: %s, %s", notificationDetails, actionUri)
     notificationManager?.notify(Random().nextInt(), builder.build())
   }
 }

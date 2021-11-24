@@ -7,9 +7,30 @@
                  withRejecter:(RCTPromiseRejectBlock)reject)*/
 
 RCT_EXTERN_METHOD(startMonitoring:(RCTPromiseResolveBlock)resolve
-                 rejecter:(RCTPromiseRejectBlock)reject)
+                 reject:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(stopMonitoring:(RCTPromiseResolveBlock)resolve
-                 rejecter:(RCTPromiseRejectBlock)reject)
+                 reject:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(requestPermissions:(RCTPromiseResolveBlock)resolve
+                 reject:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(permissionsStatus:(RCTPromiseResolveBlock)resolve
+                 reject:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(addGeofences:(NSDictionary *)geofencesHolder                                          resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(isExistsGeofenceById:(String) id
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(isExistsGeofenceByCoordinate:(NSDictionary*)coordinate
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(removeGeofences:(NSArray*) filter
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
 
 @end

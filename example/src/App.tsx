@@ -1,6 +1,13 @@
 import * as React from 'react';
 
-import { StyleSheet, View, Text, Button, ScrollView } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  Button,
+  ScrollView,
+  SafeAreaView,
+} from 'react-native';
 import {
   stopMonitoring,
   startMonitoring,
@@ -138,93 +145,95 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
-      >
-        <Text>
-          is granted permissions:{' '}
-          {`${
-            permissionData != null ? JSON.stringify(permissionData) : 'none'
-          }`}
-        </Text>
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
+      <SafeAreaView>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
         >
-          <Button
-            title={'Location permission'}
-            onPress={() =>
-              requestPermissions()
-                .then((result) => {
-                  console.log('Request permissions', result);
-                })
-                .catch((error) => {
-                  console.log('Error when permissions requested', error);
-                })
-                .then((_) => {
-                  return permissionsStatus();
-                })
-                .then((data) => {
-                  setPermissionData(data);
-                })
-                .catch((error) => {
-                  console.log('Error when check permissions', error);
-                })
-            }
-          />
-          <Button
-            title={'Stop monitoring'}
-            onPress={() => {
-              stopMonitoring()
-                .then((value) => {
-                  console.log('Stopped monitoring', value);
-                })
-                .catch((error) => {
-                  console.log('Error when stopped monitoring', error);
-                });
+          <Text>
+            is granted permissions:{' '}
+            {`${
+              permissionData != null ? JSON.stringify(permissionData) : 'none'
+            }`}
+          </Text>
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
             }}
-          />
-          <Button
-            title={'Start monitoring'}
-            onPress={() => {
-              startMonitoring()
-                .then((value) => {
-                  console.log('Started monitoring', value);
-                })
-                .catch((error) => {
-                  console.log('Error when started monitoring', error);
-                });
-            }}
-          />
-          <Button
-            title={'Add geofences'}
-            onPress={() =>
-              addGeofences(mockGeofences)
-                .then((value) => {
-                  console.log('Added geofences', value);
-                })
-                .catch((error) => {
-                  console.log('Error while adding geofences', error);
-                })
-            }
-          />
-          <Button
-            title={'Remove geofences'}
-            onPress={() =>
-              removeGeofences()
-                .then((value) => {
-                  console.log('Remove geofences', value);
-                })
-                .catch((error) => {
-                  console.log('Error while removing geofences', error);
-                })
-            }
-          />
-        </View>
-      </ScrollView>
+          >
+            <Button
+              title={'Location permission'}
+              onPress={() =>
+                requestPermissions()
+                  .then((result) => {
+                    console.log('Request permissions', result);
+                  })
+                  .catch((error) => {
+                    console.log('Error when permissions requested', error);
+                  })
+                  .then((_) => {
+                    return permissionsStatus();
+                  })
+                  .then((data) => {
+                    setPermissionData(data);
+                  })
+                  .catch((error) => {
+                    console.log('Error when check permissions', error);
+                  })
+              }
+            />
+            <Button
+              title={'Stop monitoring'}
+              onPress={() => {
+                stopMonitoring()
+                  .then((value) => {
+                    console.log('Stopped monitoring', value);
+                  })
+                  .catch((error) => {
+                    console.log('Error when stopped monitoring', error);
+                  });
+              }}
+            />
+            <Button
+              title={'Start monitoring'}
+              onPress={() => {
+                startMonitoring()
+                  .then((value) => {
+                    console.log('Started monitoring', value);
+                  })
+                  .catch((error) => {
+                    console.log('Error when started monitoring', error);
+                  });
+              }}
+            />
+            <Button
+              title={'Add geofences'}
+              onPress={() =>
+                addGeofences(mockGeofences)
+                  .then((value) => {
+                    console.log('Added geofences', value);
+                  })
+                  .catch((error) => {
+                    console.log('Error while adding geofences', error);
+                  })
+              }
+            />
+            <Button
+              title={'Remove geofences'}
+              onPress={() =>
+                removeGeofences()
+                  .then((value) => {
+                    console.log('Remove geofences', value);
+                  })
+                  .catch((error) => {
+                    console.log('Error while removing geofences', error);
+                  })
+              }
+            />
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </View>
   );
 }

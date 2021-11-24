@@ -91,7 +91,7 @@ export function requestPermissions(): Promise<PermissionData> {
           ),
         ]);
       })
-    : Promise.resolve({ result: true } as PermissionData);
+    : Geofences.requestPermissions();
 }
 
 export function permissionsStatus(): Promise<PermissionData> {
