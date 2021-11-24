@@ -77,7 +77,13 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
           GeofenceHelper(context).getGeofencesByIds(geofencingEvent.triggeringGeofences.map {
             it.requestId
           }.toTypedArray()).toTypedArray()
-
+        data.forEach {
+          it.typeTransactions[TypeTransactions.toValue(geofenceTransition)]?.first?.let {
+            if (it.message?.isNotEmpty() == true) {
+              sendNotification(context, it.message, it.actionUri)
+            }
+          }
+        }
         val ai: ApplicationInfo =
           context.packageManager.getApplicationInfo(
             context.packageName,
@@ -101,13 +107,6 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
           .setPersisted(true)
           .build()
         scheduler.schedule(jobInfo)
-        data.forEach {
-          it.typeTransactions[TypeTransactions.toValue(geofenceTransition)]?.first?.let {
-            if (it.message?.isNotEmpty() == true) {
-              sendNotification(context, it.message, it.actionUri)
-            }
-          }
-        }
       } else {
         Timber.e(
           "%s", "Error: " +
@@ -135,8 +134,8 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
     val bundle = ai.metaData
     val notificationIntent = Intent().apply {
       action = Intent.ACTION_VIEW
-      actionUri?.let{
-         data = Uri.parse(actionUri)
+      actionUri?.let {
+        data = Uri.parse(actionUri)
       }
     }
     val pendingIntent =
