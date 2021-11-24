@@ -142,13 +142,13 @@ async function requestLocationPermission() {
 
 | method 	             |   arguments 	| notes  | return data |
 | -------------        | ------------- | --------|------ |
-| ```requestPermissions``` | | Current function call request important permissions, please grant *Always allow* permission too | ```Promise<PermissionData>``` |
+| ```requestPermissions``` | | Current function call request important permissions, please grant \`*Always allow*\` #**IMPORTANT**# permission too | ```Promise<PermissionData>``` |
 | ```permissionsStatus```  | | Get permissions status | ```Promise<PermissionData>``` |
 | ```addGeofences```  | ```geofencesHolder: GeofenceHolder``` | Add geofences with ```initialTrigger``` (enter or exit) to application cache| ```Promise<GeofenceHolder>``` |
-| ```isExistsGeofenceById``` |  ```id: string?``` | Check if geofence\`s object exists by id |```Promise<boolean>``` |
-| ```isExistsGeofenceByCoordinate``` | ```coordinate: Coordinate?``` | Check if geofence\`s object exists by coordinate  (longitude, latitude, radius) | ```Promise<boolean>``` |
+| ```isExistsGeofenceById``` |  ```id: string?``` | Check if geofence\`s object exists by id into cache |```Promise<boolean>``` |
+| ```isExistsGeofenceByCoordinate``` | ```coordinate: Coordinate?``` | Check if geofence\`s object exists by coordinate  into cache (longitude, latitude, radius) | ```Promise<boolean>``` |
 |```removeGeofences```  | ```filter: string[] = []``` | Remove geofences from cache with filtering; empty filter - remove all geofences from cache | ```Promise<boolean>``` |
-| ```startMonitoring``` |  | Start monitong geofences, using cache geofences, #**IMPORTANT**# when user will start monitoring, application immediate stop monitoring created before  | ```Promise<string[]>``` |
+| ```startMonitoring``` |  | Start monitong geofences, using cached geofences, #**IMPORTANT**# when user will start monitoring, application immediate stop monitoring created before  | ```Promise<string[]>``` |
 | ```stopMonitoring``` |  | Stop monitoring | ```Promise<boolean>``` |
 
 ## Types
@@ -221,8 +221,8 @@ class OnGeofenseEventService : JobService() {
  
   override fun onStartJob(params: JobParameters?): Boolean {
     try {
-      val transitionType = params?.extras?.getInt(TRANSITION_TYPE_KEY)
-      val geofencesList = params?.extras?.getString(GEOFENCES_LIST_KEY)?.let {
+      val transitionType = params?.extras?.getInt(TRANSITION_TYPE_KEY) //Transition event type ON_ENTER/ON_EXIT/DWELL
+      val geofencesList = params?.extras?.getString(GEOFENCES_LIST_KEY)?.let { //Full geofences list at cache
         Gson().fromJson<Array<GeofenceModel>>(
           it,
           object : TypeToken<Array<GeofenceModel>>() {}.type
@@ -234,16 +234,16 @@ class OnGeofenseEventService : JobService() {
         it.filter {
           it.key.typeTransaction == transitionType
         }.forEach {     
-          Timber.e("Request model: $it $transitionType")
+          Timber.e("Geofence: $it $transitionType")
         }
       }
-      val action =
+      /*val action =
         geofencesList?.get(0)?.typeTransactions?.get(TypeTransactions.toValue(transitionType))
       val toast = Toast.makeText(
         this.applicationContext,
         action?.first?.message + " " + action?.first?.actionUri, Toast.LENGTH_LONG
       )
-      toast.show()
+      toast.show()*/
     }catch (exception: Exception){
       Timber.e("Error at service: %s", exception)
     }
