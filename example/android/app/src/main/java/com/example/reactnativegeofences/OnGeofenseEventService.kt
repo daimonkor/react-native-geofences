@@ -89,7 +89,7 @@ class OnGeofenseEventService : JobService() {
 
             })
           }
-          Timber.e("Request model: %s", (it.toString() ?: "none") + " " + transitionType)
+          Timber.e("Request model: $it $transitionType")
         }
       }
       val action =

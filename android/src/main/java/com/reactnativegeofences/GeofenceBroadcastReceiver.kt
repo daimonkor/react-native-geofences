@@ -133,8 +133,8 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
       context.packageManager.getApplicationInfo(context.packageName, PackageManager.GET_META_DATA)
     val bundle = ai.metaData
     val notificationIntent = Intent().apply {
-      action = Intent.ACTION_VIEW
       actionUri?.let {
+        action = Intent.ACTION_VIEW
         data = Uri.parse(actionUri)
       }
     }
