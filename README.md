@@ -256,7 +256,7 @@ class OnGeofenseEventService : JobService() {
 }
 ```
 
-Add to react native android *AndroidManifest.xml* current strings
+Register your service at react native *AndroidManifest.xml*
 
 ```xml
 <service
