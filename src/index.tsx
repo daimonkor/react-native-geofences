@@ -100,7 +100,7 @@ export function permissionsStatus(): Promise<PermissionData> {
 
 export function addGeofences(
   geofencesHolder: GeofenceHolder
-): Promise<boolean> {
+): Promise<GeofenceHolder> {
   return Geofences.addGeofences(geofencesHolder);
 }
 

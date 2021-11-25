@@ -17,11 +17,7 @@
             android:name=".OnGeofenseEventService"
             android:enabled="true"
             android:exported="false"
-          android:permission="android.permission.BIND_JOB_SERVICE"
-
-          >
-        </service>
-
+          android:permission="android.permission.BIND_JOB_SERVICE"/>
        <!-- <meta-data -->
         <!-- tools:replace="android:resource" -->
         <!-- android:name="notification_small_icon" -->
