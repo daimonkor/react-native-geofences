@@ -24,16 +24,21 @@ class GeofenceHelper(private val context: Context) {
   var mGeofencesHolderList = ArrayList<GeofenceHolderModel>()
     private set
   private val mGeofencingClient: GeofencingClient = LocationServices.getGeofencingClient(context);
+  var isStartedMonitoring = false
 
   companion object {
     const val CACHE_FILE_NAME = "GEOFENCES_CACHE"
     const val CACHE_KEY = "GEOFENCES_KEY"
+    const val IS_STARTED_MONITORING_KEY = "IS_STARTED_MONITORING_KEY"
     const val GEOFENCES_LIST_KEY = "GEOFENCES_LIST_KEY"
     const val TRANSITION_TYPE_KEY = "TRANSITION_TYPE_KEY"
   }
 
   init {
-    this.mGeofencesHolderList = this.getGeofencesDataFromCache()
+    this.getGeofencesDataFromCache().let {
+      this.mGeofencesHolderList = it.mGeofencesHolderList as ArrayList<GeofenceHolderModel>
+      this.isStartedMonitoring = it.isStartedMonitoring
+    }
   }
 
   fun addGeofences(geofencesHolderList: List<GeofenceHolderModel>) {
@@ -51,12 +56,12 @@ class GeofenceHelper(private val context: Context) {
       }
     }
     mGeofencesHolderList.addAll(geofencesHolderList)
-    this.saveGeofencesDataToCache(this.mGeofencesHolderList)
+    this.saveGeofencesDataToCache(this.mGeofencesHolderList, this.isStartedMonitoring)
   }
 
   private fun createGeofences(callback: (geofenceIdList: Array<String>?, exception: Exception?) -> Unit) {
     try {
-      if(mGeofencesHolderList.isEmpty()){
+      if (mGeofencesHolderList.isEmpty()) {
         callback(null, Exception("Missing geofences"))
         Timber.e("Please add geofences")
         return
@@ -130,6 +135,8 @@ class GeofenceHelper(private val context: Context) {
         if (exception != null) {
           promise?.reject(exception)
         } else {
+          isStartedMonitoring = true
+          this.saveGeofencesDataToCache(mGeofencesHolderList, isStartedMonitoring)
           val promiseList = WritableNativeArray()
           idsList?.forEach {
             promiseList.pushString(it)
@@ -143,6 +150,8 @@ class GeofenceHelper(private val context: Context) {
         if (exception != null) {
           promise?.reject(exception)
         } else {
+          isStartedMonitoring = true
+          this.saveGeofencesDataToCache(mGeofencesHolderList, isStartedMonitoring)
           val promiseList = WritableNativeArray()
           idsList?.forEach {
             promiseList.pushString(it)
@@ -170,6 +179,8 @@ class GeofenceHelper(private val context: Context) {
         }).addOnFailureListener {
         promise?.reject(it)
       }.addOnSuccessListener {
+        isStartedMonitoring = false
+        this.saveGeofencesDataToCache(mGeofencesHolderList, isStartedMonitoring)
         promise?.resolve(true)
       }
     } catch (exception: Exception) {
@@ -225,7 +236,8 @@ class GeofenceHelper(private val context: Context) {
           mGeofencesHolderList = mGeofencesHolderList.filter {
             it.geofenceModels.size > 0
           } as ArrayList<GeofenceHolderModel>
-          this.saveGeofencesDataToCache(mGeofencesHolderList)
+          this.isStartedMonitoring = false
+          this.saveGeofencesDataToCache(mGeofencesHolderList, this.isStartedMonitoring)
           promise.resolve(true)
         }
       } else {
@@ -244,7 +256,8 @@ class GeofenceHelper(private val context: Context) {
           }).addOnFailureListener {
           promise.reject(it)
         }.addOnSuccessListener {
-          this.saveGeofencesDataToCache(this.mGeofencesHolderList)
+          this.isStartedMonitoring = false
+          this.saveGeofencesDataToCache(this.mGeofencesHolderList, this.isStartedMonitoring)
           promise.resolve(true)
         }
       }
@@ -253,20 +266,26 @@ class GeofenceHelper(private val context: Context) {
     }
   }
 
-  private fun saveGeofencesDataToCache(geofencesHolderList: ArrayList<GeofenceHolderModel>) {
+  private fun saveGeofencesDataToCache(
+    geofencesHolderList: ArrayList<GeofenceHolderModel>,
+    isStartedMonitoring: Boolean
+  ) {
     val sharedPreferences: SharedPreferences =
       context.getSharedPreferences(CACHE_FILE_NAME, Context.MODE_PRIVATE)
-    sharedPreferences.edit().putString(CACHE_KEY, Gson().toJson(geofencesHolderList))?.apply()
+    sharedPreferences.edit().putString(CACHE_KEY, Gson().toJson(geofencesHolderList))
+      .putBoolean(IS_STARTED_MONITORING_KEY, isStartedMonitoring)?.apply()
   }
 
-  private fun getGeofencesDataFromCache(): ArrayList<GeofenceHolderModel> {
+  private fun getGeofencesDataFromCache(): Cache {
     val sharedPreferences: SharedPreferences =
       context.getSharedPreferences(CACHE_FILE_NAME, Context.MODE_PRIVATE)
-    return Gson().fromJson<ArrayList<GeofenceHolderModel>>(
-      sharedPreferences.getString(CACHE_KEY, "[]"),
-      object : TypeToken<ArrayList<GeofenceHolderModel>>() {
+    return Cache(
+      Gson().fromJson(
+        sharedPreferences.getString(CACHE_KEY, "[]"),
+        object : TypeToken<ArrayList<GeofenceHolderModel>>() {
 
-      }.type
+        }.type
+      ), sharedPreferences.getBoolean(IS_STARTED_MONITORING_KEY, false)
     )
   }
 

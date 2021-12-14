@@ -119,3 +119,7 @@ export function isExistsGeofenceByCoordinate(coordinate: {
 export function removeGeofences(filter: string[] = []): Promise<boolean> {
   return Geofences.removeGeofences(filter);
 }
+
+export function isStartedMonitoring(): Promise<boolean> {
+  return Geofences.isStartedMonitoring();
+}

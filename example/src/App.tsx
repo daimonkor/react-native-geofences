@@ -19,6 +19,7 @@ import {
   TypeTransactions,
   InitialTriggers,
   PermissionData,
+  isStartedMonitoring,
 } from 'react-native-geofences';
 import { useState } from 'react';
 
@@ -137,10 +138,18 @@ export default function App() {
     PermissionData | string | null
   >(null);
 
+  const [isMonitongStartedState, setMonitoringStarted] = useState<
+    boolean | string | null
+  >(null);
+
   React.useEffect(() => {
     permissionsStatus()
       .then(setPermissionData)
       .catch((error) => setPermissionData(error.message));
+
+    isStartedMonitoring()
+      .then((value) => setMonitoringStarted(value))
+      .catch((error) => setMonitoringStarted(error.message));
   }, []);
 
   return (
@@ -153,6 +162,14 @@ export default function App() {
             is granted permissions:{' '}
             {`${
               permissionData != null ? JSON.stringify(permissionData) : 'none'
+            }`}
+          </Text>
+          <Text>
+            is monitoring started:{' '}
+            {`${
+              isMonitongStartedState != null
+                ? JSON.stringify(isMonitongStartedState)
+                : 'none'
             }`}
           </Text>
           <View
@@ -192,7 +209,12 @@ export default function App() {
                   })
                   .catch((error) => {
                     console.log('Error when stopped monitoring', error);
-                  });
+                  })
+                  .then((_) => {
+                    return isStartedMonitoring();
+                  })
+                  .then((value) => setMonitoringStarted(value))
+                  .catch((error) => setMonitoringStarted(error.message));
               }}
             />
             <Button
@@ -204,7 +226,12 @@ export default function App() {
                   })
                   .catch((error) => {
                     console.log('Error when started monitoring', error);
-                  });
+                  })
+                  .then((_) => {
+                    return isStartedMonitoring();
+                  })
+                  .then((value) => setMonitoringStarted(value))
+                  .catch((error) => setMonitoringStarted(error.message));
               }}
             />
             <Button
@@ -229,6 +256,11 @@ export default function App() {
                   .catch((error) => {
                     console.log('Error while removing geofences', error);
                   })
+                  .then((_) => {
+                    return isStartedMonitoring();
+                  })
+                  .then((value) => setMonitoringStarted(value))
+                  .catch((error) => setMonitoringStarted(error.message))
               }
             />
           </View>

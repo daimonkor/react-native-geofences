@@ -189,6 +189,12 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
     promise.resolve(mGeofenceHelper.isExistsGeofence(coordinateModel).atGeofenceHolderModelListPosition >= 0)
   }
 
+  @ReactMethod
+  fun isStartedMonitoring(promise: Promise) {
+    Timber.e("Is started monitoring: %s", this.mGeofenceHelper.isStartedMonitoring)
+    promise.resolve(this.mGeofenceHelper.isStartedMonitoring)
+  }
+
   override fun onRequestPermissionsResult(
     requestCode: Int,
     permissions: Array<out String>?,

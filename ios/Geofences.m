@@ -33,4 +33,7 @@ RCT_EXTERN_METHOD(removeGeofences:(NSArray*) filter
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(isStartedMonitoring:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
 @end

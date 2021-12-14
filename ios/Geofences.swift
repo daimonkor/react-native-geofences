@@ -3,14 +3,14 @@ import React
 
 @objc(Geofences)
 class Geofences: NSObject, CLLocationManagerDelegate, UNUserNotificationCenterDelegate {
-    
+
     private var locationManager: CLLocationManager = CLLocationManager()
     private var requestLocationAuthorizationCallback: ((CLAuthorizationStatus) -> Void)?
    /* @objc(multiply:withB:withResolver:withRejecter:)
     func multiply(a: Float, b: Float, resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) {
         resolve(a*b)
     }*/
-    
+
     private override init() {
          super.init()
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
@@ -28,7 +28,7 @@ class Geofences: NSObject, CLLocationManagerDelegate, UNUserNotificationCenterDe
     func stopMonitoring(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock)  -> Void  {
         resolve(true)
     }
-    
+
     @objc(requestPermissions:reject:)
     func requestPermissions(_ resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock)  -> Void  {
         self.requestLocationAuthorization( callback: { (status) in
@@ -39,41 +39,45 @@ class Geofences: NSObject, CLLocationManagerDelegate, UNUserNotificationCenterDe
 //        locationManager.allowsBackgroundLocationUpdates = true
       //  resolve(true)
     }
-    
+
     @objc(permissionsStatus:reject:)
     func permissionsStatus(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock)  -> Void  {
         let currentStatus = CLLocationManager.authorizationStatus()
         resolve( currentStatus.rawValue)
     }
-    
+
     @objc(addGeofences:resolve:reject:)
     func addGeofences(_ geofenceHolder: NSDictionary, resolve: RCTPromiseResolveBlock,   reject: RCTPromiseRejectBlock) -> Void {
         resolve(geofenceHolder)
     }
-    
+
     @objc(isExistsGeofenceById:id:resolve:)
     func isExistsGeofenceById(_ id: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock)  -> Void  {
         resolve(true)
     }
-    
+
     @objc(isExistsGeofenceByCoordinate:coordinate:resolve:)
     func isExistsGeofenceByCoordinate(_ coordinate: NSDictionary, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock)  -> Void  {
         resolve(true)
     }
-    
+
     @objc(removeGeofences:resolve:reject:)
     func removeGeofences(filter: NSArray, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock)  -> Void  {
         resolve(filter)
-     }
-    
-    
+    }
+
+    @objc(isStartedMonitoring:reject:)
+    func isStartedMonitoring(_ resolve:  RCTPromiseResolveBlock, reject:  RCTPromiseRejectBlock)  -> Void   {
+        resolve(true)
+    }
+
     func locationManager(_ manager: CLLocationManager,
                          didChangeAuthorization status: CLAuthorizationStatus) {
         self.requestLocationAuthorizationCallback?(status)
     }
-    
+
     public func requestLocationAuthorization(callback: ((CLAuthorizationStatus) -> Void)?) {
-       
+
         let currentStatus = CLLocationManager.authorizationStatus()
 
         // Only ask authorization if it was never asked before
@@ -87,7 +91,7 @@ class Geofences: NSObject, CLLocationManagerDelegate, UNUserNotificationCenterDe
                 print("SSSS", status.rawValue)
                 if status == .authorizedWhenInUse {
                     self.locationManager.requestAlwaysAuthorization()
-                   
+
                 }else{
                     callback?(status)
                 }
