@@ -51,13 +51,23 @@ class Geofences: NSObject, CLLocationManagerDelegate, UNUserNotificationCenterDe
         resolve(geofenceHolder)
     }
 
-    @objc(isExistsGeofenceById:id:resolve:)
-    func isExistsGeofenceById(_ id: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock)  -> Void  {
+    @objc(isExistsGeofenceById:resolve:reject:)
+    func isExistsGeofenceById(id: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock)  -> Void  {
         resolve(true)
     }
 
-    @objc(isExistsGeofenceByCoordinate:coordinate:resolve:)
-    func isExistsGeofenceByCoordinate(_ coordinate: NSDictionary, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock)  -> Void  {
+    @objc(isExistsGeofenceByListId:resolve:reject:)
+    func isExistsGeofenceByListId(ids: NSArray, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock)  -> Void  {
+        resolve(true)
+    }
+
+    @objc(isExistsGeofenceByCoordinate:resolve:reject:)
+    func isExistsGeofenceByCoordinate(coordinate: NSDictionary, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock)  -> Void  {
+        resolve(true)
+    }
+
+    @objc(isExistsGeofenceByListCoordinate:resolve:reject:)
+    func isExistsGeofenceByListCoordinate(coordinates: NSArray, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock)  -> Void  {
         resolve(true)
     }
 

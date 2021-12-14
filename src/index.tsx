@@ -43,7 +43,7 @@ const Geofences = NativeModules.Geofences
 export interface Coordinate {
   longitude: number;
   latitude: number;
-  radius: number;
+  radius?: number;
 }
 
 export interface Geofence {
@@ -105,15 +105,27 @@ export function addGeofences(
 }
 
 export function isExistsGeofenceById(id: string): Promise<boolean> {
-  console.log(id);
+  console.log('isExistsGeofenceById', id);
   return Geofences.isExistsGeofenceById(id);
 }
 
-export function isExistsGeofenceByCoordinate(coordinate: {
-  longitude: number;
-  latitude: number;
-}): Promise<boolean> {
+export function isExistsGeofenceByListId(ids: string[]): Promise<boolean> {
+  console.log('isExistsGeofenceByListId', ids);
+  return Geofences.isExistsGeofenceByListId(ids);
+}
+
+export function isExistsGeofenceByCoordinate(
+  coordinate: Coordinate
+): Promise<boolean> {
+  console.log('isExistsGeofenceByCoordinate', coordinate);
   return Geofences.isExistsGeofenceByCoordinate(coordinate);
+}
+
+export function isExistsGeofenceByListCoordinate(
+  coordinates: Coordinate[]
+): Promise<boolean> {
+  console.log('isExistsGeofenceByListCoordinate', coordinates);
+  return Geofences.isExistsGeofenceByListCoordinate(coordinates);
 }
 
 export function removeGeofences(filter: string[] = []): Promise<boolean> {

@@ -190,6 +190,8 @@ class GeofenceHelper(private val context: Context) {
 
   fun isExistsGeofence(id: String) = this.getGeofencesByIds(arrayOf(id)).firstOrNull() != null
 
+  fun isExistsGeofence(ids: Array<String>) = this.getGeofencesByIds(ids).firstOrNull() != null
+
   fun getGeofencesByIds(ids: Array<String>): List<GeofenceModel> {
     val list = ArrayList<GeofenceModel>()
     this.mGeofencesHolderList.forEachIndexed { _, geofencesHolder ->
@@ -202,24 +204,21 @@ class GeofenceHelper(private val context: Context) {
     return list
   }
 
+  fun isExistsGeofence(coordinates: Array<Coordinate>): List<GeofenceAtCache> {
+    val list = ArrayList<GeofenceAtCache>()
+    coordinates.forEach {
+      list.add(isExistsGeofence(it))
+    }
+    return list
+  }
+
   fun isExistsGeofence(coordinate: Coordinate): GeofenceAtCache {
     this.mGeofencesHolderList.forEachIndexed { indexGeofenceHolderModelListPosition, geofencesHolder ->
       geofencesHolder.geofenceModels.forEachIndexed { indexGeofenceModelListPosition, geofenceModel ->
-        if (geofenceModel.position.latitude == coordinate.latitude && geofenceModel.position.longitude == coordinate.longitude && geofenceModel.position.radius == coordinate.radius) return object :
-          GeofenceAtCache {
-          override val atGeofenceHolderModelListPosition: Int
-            get() = indexGeofenceHolderModelListPosition
-          override val atGeofenceModelListPosition: Int
-            get() = indexGeofenceModelListPosition
-        }
+        if (geofenceModel.position.latitude == coordinate.latitude && geofenceModel.position.longitude == coordinate.longitude && (geofenceModel.position.radius == coordinate.radius || (coordinate.radius == null || coordinate.radius < 0))) return GeofenceAtCache (indexGeofenceHolderModelListPosition, indexGeofenceModelListPosition)
       }
     }
-    return object : GeofenceAtCache {
-      override val atGeofenceHolderModelListPosition: Int
-        get() = -1
-      override val atGeofenceModelListPosition: Int
-        get() = -1
-    }
+    return  GeofenceAtCache (-1, -1)
   }
 
   fun removeGeofences(filter: Array<String>, promise: Promise) {

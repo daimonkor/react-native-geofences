@@ -72,15 +72,18 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
       initialTriggers.add((it as Double).toInt())
     }
     val geofencesHolder = GeofenceHolderModel()
-    geofencesHolder.initialTriggers =  initialTriggers.map { value ->
-      InitialTriggers.values().firstOrNull { it.trigger == value }?: InitialTriggers.UNKNOWN
+    geofencesHolder.initialTriggers = initialTriggers.map { value ->
+      InitialTriggers.values().firstOrNull { it.trigger == value } ?: InitialTriggers.UNKNOWN
     }.toTypedArray()
     geofences.getArray("geofences")?.toArrayList()?.forEach {
       it as HashMap<*, *>
-      val transactionTypes = HashMap<TypeTransactions, Pair<NotificationDataModel?, HashMap<String, *>?>>()
+      val transactionTypes =
+        HashMap<TypeTransactions, Pair<NotificationDataModel?, HashMap<String, *>?>>()
       (it.get("typeTransactions") as ArrayList<*>).toArray().forEach {
         it as HashMap<*, *>
-        transactionTypes[TypeTransactions.values().firstOrNull { value ->  value.typeTransaction ==  (it.get("type") as Double).toInt()}?: TypeTransactions.UNKNOWN ] =
+        transactionTypes[TypeTransactions.values()
+          .firstOrNull { value -> value.typeTransaction == (it.get("type") as Double).toInt() }
+          ?: TypeTransactions.UNKNOWN] =
           (it.get("notification") as? HashMap<String, String>)?.let {
             NotificationDataModel(
               message = it.get("message") ?: "",
@@ -180,11 +183,35 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
+  fun isExistsGeofenceByListId(ids: ReadableArray, promise: Promise) {
+    Timber.e("Is exists Geofence by list ids: %s", ids)
+    promise.resolve(mGeofenceHelper.isExistsGeofence(ids as? Array<String> ?: arrayOf()))
+  }
+
+  @ReactMethod
+  fun isExistsGeofenceByListCoordinate(coordinates: ReadableArray, promise: Promise) {
+    Timber.e("Is exists Geofence by lis coordinates: %s", coordinates)
+    val coordinatesRefactor = coordinates.toArrayList().map {
+      it as HashMap<String,*>
+      Coordinate(
+        longitude = it.get("longitude") as Double,
+        latitude = it.get("latitude") as Double,
+        radius = (it.get("radius") as? Double)?.toInt()
+      )
+    }
+    promise.resolve(
+      mGeofenceHelper.isExistsGeofence(coordinatesRefactor.toTypedArray()).let {
+        it.isNotEmpty() && !it.contains(GeofenceAtCache( -1,  -1))
+      })
+  }
+
+  @ReactMethod
   fun isExistsGeofenceByCoordinate(coordinate: ReadableMap, promise: Promise) {
     Timber.e("Is exists Geofence by coordinate: %s", coordinate)
     val coordinateModel = Coordinate(
       longitude = coordinate.getDouble("longitude"),
-      latitude = coordinate.getDouble("latitude")
+      latitude = coordinate.getDouble("latitude"),
+      radius = coordinate?.getDouble("radius")?.toInt()
     )
     promise.resolve(mGeofenceHelper.isExistsGeofence(coordinateModel).atGeofenceHolderModelListPosition >= 0)
   }

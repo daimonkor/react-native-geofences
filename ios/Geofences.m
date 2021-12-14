@@ -25,7 +25,15 @@ RCT_EXTERN_METHOD(isExistsGeofenceById:(String) id
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(isExistsGeofenceByCoordinate:(NSDictionary*)coordinate
+RCT_EXTERN_METHOD(isExistsGeofenceByListId:(NSArray*) ids
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(isExistsGeofenceByCoordinate:(NSDictionary*) coordinate
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(isExistsGeofenceByListCoordinate:(NSArray*) coordinates
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 

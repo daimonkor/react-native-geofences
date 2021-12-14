@@ -20,6 +20,7 @@ import {
   InitialTriggers,
   PermissionData,
   isStartedMonitoring,
+  isExistsGeofenceByListCoordinate,
 } from 'react-native-geofences';
 import { useState } from 'react';
 
@@ -243,6 +244,18 @@ export default function App() {
                   })
                   .catch((error) => {
                     console.log('Error while adding geofences', error);
+                  })
+                  .then((_) => {
+                    return isExistsGeofenceByListCoordinate([
+                      { latitude: 40.7415, longitude: -74.0034, radius: 200 },
+                      { latitude: 50, longitude: 50, radius: 300 },
+                    ]);
+                  })
+                  .then((value) => {
+                    console.log('Is exists coordinates', value);
+                  })
+                  .catch((error) => {
+                    console.log('Error while check exists coordinates', error);
                   })
               }
             />
