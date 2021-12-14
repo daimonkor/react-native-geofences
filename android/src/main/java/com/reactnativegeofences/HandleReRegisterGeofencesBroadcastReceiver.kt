@@ -10,6 +10,8 @@ class HandleReRegisterGeofencesBroadcastReceiver : BroadcastReceiver() {
   override fun onReceive(context: Context, intent: Intent) {
     val geofenceHelper = GeofenceHelper(context)
     Timber.e("Restart geofences: %s", geofenceHelper.mGeofencesHolderList)
-    geofenceHelper.startMonitoring(null)
+    if(geofenceHelper.isStartedMonitoring) {
+      geofenceHelper.startMonitoring(null)
+    }
   }
 }
