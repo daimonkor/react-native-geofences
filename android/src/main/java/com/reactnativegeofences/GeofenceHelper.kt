@@ -43,7 +43,7 @@ class GeofenceHelper(private val context: Context) {
   fun addGeofences(geofencesHolderList: List<GeofenceHolderModel>) {
     geofencesHolderList.forEach {
       it.geofenceModels.forEach {
-        val indexes = this.isExistsGeofence(it.position)
+        val indexes = this.isExistsGeofence(it.position, true)
         if (indexes.atGeofenceHolderModelListPosition >= 0) {
           mGeofencesHolderList[indexes.atGeofenceHolderModelListPosition].geofenceModels.removeAt(
             indexes.atGeofenceModelListPosition
@@ -134,6 +134,7 @@ class GeofenceHelper(private val context: Context) {
         if (exception != null) {
           promise?.reject(exception)
         } else {
+          Timber.e("Start geofences monitoring successfully")
           mIsStartedMonitoring = true
           mBootCompleted = true
           this.saveCache()
@@ -150,6 +151,7 @@ class GeofenceHelper(private val context: Context) {
         if (exception != null) {
           promise?.reject(exception)
         } else {
+          Timber.e("Start geofences monitoring successfully")
           mIsStartedMonitoring = true
           mBootCompleted = true
           this.saveCache()
@@ -207,18 +209,18 @@ class GeofenceHelper(private val context: Context) {
     return list
   }
 
-  fun isExistsGeofence(coordinates: Array<Coordinate>): List<GeofenceAtCache> {
+  fun isExistsGeofence(coordinates: Array<Coordinate>, ignoreRadius: Boolean = false): List<GeofenceAtCache> {
     val list = ArrayList<GeofenceAtCache>()
     coordinates.forEach {
-      list.add(isExistsGeofence(it))
+      list.add(isExistsGeofence(it, ignoreRadius))
     }
     return list
   }
 
-  fun isExistsGeofence(coordinate: Coordinate): GeofenceAtCache {
+  fun isExistsGeofence(coordinate: Coordinate, ignoreRadius: Boolean = false): GeofenceAtCache {
     this.mGeofencesHolderList.forEachIndexed { indexGeofenceHolderModelListPosition, geofencesHolder ->
       geofencesHolder.geofenceModels.forEachIndexed { indexGeofenceModelListPosition, geofenceModel ->
-        if (geofenceModel.position.latitude == coordinate.latitude && geofenceModel.position.longitude == coordinate.longitude && (geofenceModel.position.radius == coordinate.radius || (coordinate.radius == null || coordinate.radius < 0))) return GeofenceAtCache(
+        if (geofenceModel.position.latitude == coordinate.latitude && geofenceModel.position.longitude == coordinate.longitude && if (!ignoreRadius) (geofenceModel.position.radius == coordinate.radius || (coordinate.radius == null || coordinate.radius < 0)) else true) return GeofenceAtCache(
           indexGeofenceHolderModelListPosition,
           indexGeofenceModelListPosition
         )

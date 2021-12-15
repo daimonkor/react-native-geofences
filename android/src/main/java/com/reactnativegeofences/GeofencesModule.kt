@@ -190,7 +190,6 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun isExistsGeofenceByListCoordinate(coordinates: ReadableArray, promise: Promise) {
-    Timber.e("Is exists Geofence by lis coordinates: %s", coordinates)
     val coordinatesRefactor = coordinates.toArrayList().map {
       it as HashMap<String,*>
       Coordinate(
@@ -199,21 +198,23 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
         radius = (it.get("radius") as? Double)?.toInt()
       )
     }
-    promise.resolve(
-      mGeofenceHelper.isExistsGeofence(coordinatesRefactor.toTypedArray()).let {
-        it.isNotEmpty() && !it.contains(GeofenceAtCache( -1,  -1))
-      })
+    val result = mGeofenceHelper.isExistsGeofence(coordinatesRefactor.toTypedArray()).let {
+      it.isNotEmpty() && !it.contains(GeofenceAtCache( -1,  -1))
+    }
+    Timber.e("Is exists Geofence by list coordinates: %s, %s, %s", coordinates, result, mGeofenceHelper.mGeofencesHolderList)
+    promise.resolve(result)
   }
 
   @ReactMethod
   fun isExistsGeofenceByCoordinate(coordinate: ReadableMap, promise: Promise) {
-    Timber.e("Is exists Geofence by coordinate: %s", coordinate)
     val coordinateModel = Coordinate(
-      longitude = coordinate.getDouble("longitude"),
-      latitude = coordinate.getDouble("latitude"),
-      radius = coordinate?.getDouble("radius")?.toInt()
-    )
-    promise.resolve(mGeofenceHelper.isExistsGeofence(coordinateModel).atGeofenceHolderModelListPosition >= 0)
+        longitude = coordinate.getDouble("longitude"),
+        latitude = coordinate.getDouble("latitude"),
+        radius = coordinate?.getDouble("radius")?.toInt()
+      )
+    val result = mGeofenceHelper.isExistsGeofence(coordinateModel).atGeofenceHolderModelListPosition >= 0
+    Timber.e("Is exists Geofence by coordinate: %s, %s", coordinate, result)
+    promise.resolve(result)
   }
 
   @ReactMethod
