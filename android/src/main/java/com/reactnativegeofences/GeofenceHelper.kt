@@ -25,11 +25,13 @@ class GeofenceHelper(private val context: Context) {
     private set
   private val mGeofencingClient: GeofencingClient = LocationServices.getGeofencingClient(context);
   var mIsStartedMonitoring = false
+  var mBootCompleted = true
 
   companion object {
     const val CACHE_FILE_NAME = "GEOFENCES_CACHE"
-    const val CACHE_KEY = "GEOFENCES_KEY"
+    const val GEOFENCES_KEY = "GEOFENCES_KEY"
     const val IS_STARTED_MONITORING_KEY = "IS_STARTED_MONITORING_KEY"
+    const val BOOT_COMPLETED_KEY = "BOOT_COMPLETED_KEY"
     const val GEOFENCES_LIST_KEY = "GEOFENCES_LIST_KEY"
     const val TRANSITION_TYPE_KEY = "TRANSITION_TYPE_KEY"
   }
@@ -176,8 +178,8 @@ class GeofenceHelper(private val context: Context) {
         }).addOnFailureListener {
         promise?.reject(it)
       }.addOnSuccessListener {
-        mIsStartedMonitoring = mIsStartedMonitoring.let{
-          this.saveGeofencesDataToCache(mGeofencesHolderList, false)
+        mIsStartedMonitoring = mIsStartedMonitoring.let {
+          this.saveGeofencesDataToCache(mGeofencesHolderList, false, mBootCompleted)
           promise?.resolve(it)
           false
         }
@@ -214,10 +216,13 @@ class GeofenceHelper(private val context: Context) {
   fun isExistsGeofence(coordinate: Coordinate): GeofenceAtCache {
     this.mGeofencesHolderList.forEachIndexed { indexGeofenceHolderModelListPosition, geofencesHolder ->
       geofencesHolder.geofenceModels.forEachIndexed { indexGeofenceModelListPosition, geofenceModel ->
-        if (geofenceModel.position.latitude == coordinate.latitude && geofenceModel.position.longitude == coordinate.longitude && (geofenceModel.position.radius == coordinate.radius || (coordinate.radius == null || coordinate.radius < 0))) return GeofenceAtCache (indexGeofenceHolderModelListPosition, indexGeofenceModelListPosition)
+        if (geofenceModel.position.latitude == coordinate.latitude && geofenceModel.position.longitude == coordinate.longitude && (geofenceModel.position.radius == coordinate.radius || (coordinate.radius == null || coordinate.radius < 0))) return GeofenceAtCache(
+          indexGeofenceHolderModelListPosition,
+          indexGeofenceModelListPosition
+        )
       }
     }
-    return  GeofenceAtCache (-1, -1)
+    return GeofenceAtCache(-1, -1)
   }
 
   fun removeGeofences(filter: Array<String>, promise: Promise) {
@@ -266,22 +271,24 @@ class GeofenceHelper(private val context: Context) {
 
   private fun saveGeofencesDataToCache(
     geofencesHolderList: ArrayList<GeofenceHolderModel>,
-    isStartedMonitoring: Boolean
+    isStartedMonitoring: Boolean, bootCompleted: Boolean
   ) {
     val sharedPreferences: SharedPreferences =
       context.getSharedPreferences(CACHE_FILE_NAME, Context.MODE_PRIVATE)
-    sharedPreferences.edit().putString(CACHE_KEY, Gson().toJson(geofencesHolderList))
-      .putBoolean(IS_STARTED_MONITORING_KEY, isStartedMonitoring)?.apply()
+    sharedPreferences.edit().putString(GEOFENCES_KEY, Gson().toJson(geofencesHolderList))
+      .putBoolean(IS_STARTED_MONITORING_KEY, isStartedMonitoring)
+      .putBoolean(BOOT_COMPLETED_KEY, bootCompleted)?.apply()
   }
 
-  fun saveCache(){
-    saveGeofencesDataToCache(mGeofencesHolderList, mIsStartedMonitoring)
+  fun saveCache() {
+    saveGeofencesDataToCache(mGeofencesHolderList, mIsStartedMonitoring, mBootCompleted)
   }
 
-  fun loadCache(){
+  fun loadCache() {
     this.getGeofencesDataFromCache().let {
       this.mGeofencesHolderList = it.geofencesHolderList as ArrayList<GeofenceHolderModel>
       this.mIsStartedMonitoring = it.isStartedMonitoring
+      this.mBootCompleted = it.bootCompleted
     }
   }
 
@@ -290,11 +297,12 @@ class GeofenceHelper(private val context: Context) {
       context.getSharedPreferences(CACHE_FILE_NAME, Context.MODE_PRIVATE)
     return Cache(
       Gson().fromJson(
-        sharedPreferences.getString(CACHE_KEY, "[]"),
+        sharedPreferences.getString(GEOFENCES_KEY, "[]"),
         object : TypeToken<ArrayList<GeofenceHolderModel>>() {
 
         }.type
-      ), sharedPreferences.getBoolean(IS_STARTED_MONITORING_KEY, false)
+      ), sharedPreferences.getBoolean(IS_STARTED_MONITORING_KEY, false),
+      sharedPreferences.getBoolean(BOOT_COMPLETED_KEY, true)
     )
   }
 
