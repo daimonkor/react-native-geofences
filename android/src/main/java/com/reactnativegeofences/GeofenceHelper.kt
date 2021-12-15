@@ -24,7 +24,7 @@ class GeofenceHelper(private val context: Context) {
   var mGeofencesHolderList = ArrayList<GeofenceHolderModel>()
     private set
   private val mGeofencingClient: GeofencingClient = LocationServices.getGeofencingClient(context);
-  var isStartedMonitoring = false
+  var mIsStartedMonitoring = false
 
   companion object {
     const val CACHE_FILE_NAME = "GEOFENCES_CACHE"
@@ -35,10 +35,7 @@ class GeofenceHelper(private val context: Context) {
   }
 
   init {
-    this.getGeofencesDataFromCache().let {
-      this.mGeofencesHolderList = it.mGeofencesHolderList as ArrayList<GeofenceHolderModel>
-      this.isStartedMonitoring = it.isStartedMonitoring
-    }
+    loadCache()
   }
 
   fun addGeofences(geofencesHolderList: List<GeofenceHolderModel>) {
@@ -56,7 +53,7 @@ class GeofenceHelper(private val context: Context) {
       }
     }
     mGeofencesHolderList.addAll(geofencesHolderList)
-    this.saveGeofencesDataToCache(this.mGeofencesHolderList, this.isStartedMonitoring)
+    this.saveCache()
   }
 
   private fun createGeofences(callback: (geofenceIdList: Array<String>?, exception: Exception?) -> Unit) {
@@ -135,8 +132,8 @@ class GeofenceHelper(private val context: Context) {
         if (exception != null) {
           promise?.reject(exception)
         } else {
-          isStartedMonitoring = true
-          this.saveGeofencesDataToCache(mGeofencesHolderList, isStartedMonitoring)
+          mIsStartedMonitoring = true
+          this.saveCache()
           val promiseList = WritableNativeArray()
           idsList?.forEach {
             promiseList.pushString(it)
@@ -150,8 +147,8 @@ class GeofenceHelper(private val context: Context) {
         if (exception != null) {
           promise?.reject(exception)
         } else {
-          isStartedMonitoring = true
-          this.saveGeofencesDataToCache(mGeofencesHolderList, isStartedMonitoring)
+          mIsStartedMonitoring = true
+          this.saveCache()
           val promiseList = WritableNativeArray()
           idsList?.forEach {
             promiseList.pushString(it)
@@ -179,8 +176,8 @@ class GeofenceHelper(private val context: Context) {
         }).addOnFailureListener {
         promise?.reject(it)
       }.addOnSuccessListener {
-        isStartedMonitoring = false
-        this.saveGeofencesDataToCache(mGeofencesHolderList, isStartedMonitoring)
+        mIsStartedMonitoring = false
+        this.saveCache()
         promise?.resolve(true)
       }
     } catch (exception: Exception) {
@@ -235,8 +232,8 @@ class GeofenceHelper(private val context: Context) {
           mGeofencesHolderList = mGeofencesHolderList.filter {
             it.geofenceModels.size > 0
           } as ArrayList<GeofenceHolderModel>
-          this.isStartedMonitoring = false
-          this.saveGeofencesDataToCache(mGeofencesHolderList, this.isStartedMonitoring)
+          this.mIsStartedMonitoring = false
+          this.saveCache()
           promise.resolve(true)
         }
       } else {
@@ -255,8 +252,8 @@ class GeofenceHelper(private val context: Context) {
           }).addOnFailureListener {
           promise.reject(it)
         }.addOnSuccessListener {
-          this.isStartedMonitoring = false
-          this.saveGeofencesDataToCache(this.mGeofencesHolderList, this.isStartedMonitoring)
+          this.mIsStartedMonitoring = false
+          this.saveCache()
           promise.resolve(true)
         }
       }
@@ -273,6 +270,17 @@ class GeofenceHelper(private val context: Context) {
       context.getSharedPreferences(CACHE_FILE_NAME, Context.MODE_PRIVATE)
     sharedPreferences.edit().putString(CACHE_KEY, Gson().toJson(geofencesHolderList))
       .putBoolean(IS_STARTED_MONITORING_KEY, isStartedMonitoring)?.apply()
+  }
+
+  fun saveCache(){
+    saveGeofencesDataToCache(mGeofencesHolderList, mIsStartedMonitoring)
+  }
+
+  fun loadCache(){
+    this.getGeofencesDataFromCache().let {
+      this.mGeofencesHolderList = it.geofencesHolderList as ArrayList<GeofenceHolderModel>
+      this.mIsStartedMonitoring = it.isStartedMonitoring
+    }
   }
 
   private fun getGeofencesDataFromCache(): Cache {

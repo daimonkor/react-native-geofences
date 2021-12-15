@@ -218,8 +218,8 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun isStartedMonitoring(promise: Promise) {
-    Timber.e("Is started monitoring: %s", this.mGeofenceHelper.isStartedMonitoring)
-    promise.resolve(this.mGeofenceHelper.isStartedMonitoring)
+    Timber.e("Is started monitoring: %s", this.mGeofenceHelper.mIsStartedMonitoring)
+    promise.resolve(this.mGeofenceHelper.mIsStartedMonitoring)
   }
 
   override fun onRequestPermissionsResult(
