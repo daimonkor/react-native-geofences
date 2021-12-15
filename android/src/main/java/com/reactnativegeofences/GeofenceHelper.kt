@@ -176,9 +176,11 @@ class GeofenceHelper(private val context: Context) {
         }).addOnFailureListener {
         promise?.reject(it)
       }.addOnSuccessListener {
-        mIsStartedMonitoring = false
-        this.saveCache()
-        promise?.resolve(true)
+        mIsStartedMonitoring = mIsStartedMonitoring.let{
+          this.saveGeofencesDataToCache(mGeofencesHolderList, false)
+          promise?.resolve(it)
+          false
+        }
       }
     } catch (exception: Exception) {
       promise?.reject(exception)
