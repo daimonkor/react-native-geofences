@@ -8,6 +8,7 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
+import { NativeEventEmitter, NativeModules } from 'react-native';
 import {
   stopMonitoring,
   startMonitoring,
@@ -151,6 +152,17 @@ export default function App() {
     isStartedMonitoring()
       .then((value) => setMonitoringStarted(value))
       .catch((error) => setMonitoringStarted(error.message));
+
+    const eventEmitter = new NativeEventEmitter(NativeModules.GeofencesModule);
+    const eventListener = eventEmitter.addListener(
+      'onGeofenceEvent',
+      (event) => {
+        console.log('onGeofenceEvent', event);
+      }
+    );
+    return () => {
+      eventListener.remove();
+    };
   }, []);
 
   return (

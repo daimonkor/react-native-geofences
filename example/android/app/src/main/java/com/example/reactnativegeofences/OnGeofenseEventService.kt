@@ -5,6 +5,7 @@ import android.app.job.JobService
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import com.facebook.react.bridge.Arguments
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.icebergteam.timberjava.Timber
@@ -18,6 +19,13 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import okhttp3.logging.HttpLoggingInterceptor
+import com.facebook.react.modules.core.DeviceEventManagerModule
+
+import com.facebook.react.bridge.WritableMap
+import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
+import com.reactnativegeofences.utils.ArrayUtil
+import com.reactnativegeofences.utils.MapUtil
+
 
 data class RequestModel(
   val headers: Map<String, Any?>?,
@@ -67,6 +75,23 @@ class OnGeofenseEventService : JobService() {
           object : TypeToken<Array<GeofenceModel>>() {}.type
         )
       }
+
+      (application as MainApplication).reactNativeHost.reactInstanceManager.currentReactContext
+        ?.getJSModule(RCTDeviceEventEmitter::class.java)?.apply {
+          val internalParams: WritableMap = Arguments.createMap()
+          internalParams.putInt(
+            TRANSITION_TYPE_KEY,
+            transitionType ?: TypeTransactions.UNKNOWN.typeTransaction
+          )
+          internalParams.putArray(
+            GEOFENCES_LIST_KEY,
+            ArrayUtil.toWritableArray(params?.extras?.getString(GEOFENCES_LIST_KEY)?.let {
+              val fromJson = Gson().fromJson<Array<*>>(it, object : TypeToken<Array<*>>() {}.type)
+              fromJson
+            }))
+          emit("onGeofenceEvent", internalParams)
+        }
+
       geofencesList?.map {
         it.typeTransactions.entries
       }?.forEach {
@@ -99,7 +124,7 @@ class OnGeofenseEventService : JobService() {
         action?.first?.message + " " + action?.first?.actionUri, Toast.LENGTH_LONG
       )
       toast.show()
-    }catch (exception: Exception){
+    } catch (exception: Exception) {
       Timber.e("Error at service: %s", exception)
     }
     return true
