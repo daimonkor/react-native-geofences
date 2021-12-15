@@ -135,6 +135,7 @@ class GeofenceHelper(private val context: Context) {
           promise?.reject(exception)
         } else {
           mIsStartedMonitoring = true
+          mBootCompleted = true
           this.saveCache()
           val promiseList = WritableNativeArray()
           idsList?.forEach {
@@ -150,6 +151,7 @@ class GeofenceHelper(private val context: Context) {
           promise?.reject(exception)
         } else {
           mIsStartedMonitoring = true
+          mBootCompleted = true
           this.saveCache()
           val promiseList = WritableNativeArray()
           idsList?.forEach {
