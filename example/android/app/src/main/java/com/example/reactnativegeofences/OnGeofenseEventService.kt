@@ -109,12 +109,12 @@ class OnGeofenseEventService : JobService() {
               }
 
               override fun onResponse(call: Call, response: Response) {
-                Timber.e("Response: %s", response.body?.toString() ?: "no response")
+                Timber.i("Response: %s", response.body?.toString() ?: "no response")
               }
 
             })
           }
-          Timber.e("Request model: $it $transitionType")
+          Timber.i("Request model: $it $transitionType")
         }
       }
       val action =

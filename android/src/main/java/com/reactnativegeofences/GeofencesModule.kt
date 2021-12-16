@@ -66,7 +66,7 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun addGeofences(geofences: ReadableMap, promise: Promise) {
-    Timber.e("Add geofences: %s", geofences.toString())
+    Timber.i("Add geofences: %s", geofences.toString())
     val initialTriggers = ArrayList<Int>()
     geofences.getArray("initialTriggers")?.toArrayList()?.forEach {
       initialTriggers.add((it as Double).toInt())
@@ -114,7 +114,7 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
   @RequiresApi(Build.VERSION_CODES.Q)
   @ReactMethod
   fun requestPermissions(permission: String, promise: Promise) {
-    Timber.e("Request permission %s", permission)
+    Timber.i("Request permission %s", permission)
     (this.currentActivity as PermissionAwareActivity?)?.let {
       this.mPermissionsPromise = promise
       it.requestPermissions(
@@ -160,25 +160,25 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun startMonitoring(promise: Promise) {
-    Timber.e("Start monitoring: %s", this.mGeofenceHelper.mGeofencesHolderList)
+    Timber.i("Start monitoring: %s", this.mGeofenceHelper.mGeofencesHolderList)
     mGeofenceHelper.startMonitoring(promise)
   }
 
   @ReactMethod
   fun stopMonitoring(promise: Promise) {
-    Timber.e("Stop monitoring: %s", this.mGeofenceHelper.mGeofencesHolderList)
+    Timber.i("Stop monitoring: %s", this.mGeofenceHelper.mGeofencesHolderList)
     mGeofenceHelper.stopMonitoring(promise)
   }
 
   @ReactMethod
   fun removeGeofences(filter: ReadableArray, promise: Promise) {
-    Timber.e("Remove geofences, filter: %s", filter)
+    Timber.i("Remove geofences, filter: %s", filter)
     mGeofenceHelper.removeGeofences(filter as? Array<String> ?: arrayOf(), promise)
   }
 
   @ReactMethod
   fun isExistsGeofenceById(id: String, promise: Promise) {
-    Timber.e("Is exists Geofence by id: %s", id)
+    Timber.i("Is exists Geofence by id: %s", id)
     promise.resolve(mGeofenceHelper.isExistsGeofence(id))
   }
 
@@ -201,7 +201,7 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
     val result = mGeofenceHelper.isExistsGeofence(coordinatesRefactor.toTypedArray()).let {
       it.isNotEmpty() && !it.contains(GeofenceAtCache( -1,  -1))
     }
-    Timber.e("Is exists Geofence by list coordinates: %s, %s, %s", coordinates, result, mGeofenceHelper.mGeofencesHolderList)
+    Timber.i("Is exists Geofence by list coordinates: %s, %s, %s", coordinates, result, mGeofenceHelper.mGeofencesHolderList)
     promise.resolve(result)
   }
 
@@ -213,13 +213,13 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
         radius = coordinate?.getDouble("radius")?.toInt()
       )
     val result = mGeofenceHelper.isExistsGeofence(coordinateModel).atGeofenceHolderModelListPosition >= 0
-    Timber.e("Is exists Geofence by coordinate: %s, %s", coordinate, result)
+    Timber.i("Is exists Geofence by coordinate: %s, %s", coordinate, result)
     promise.resolve(result)
   }
 
   @ReactMethod
   fun isStartedMonitoring(promise: Promise) {
-    Timber.e("Is started monitoring: %s", this.mGeofenceHelper.mIsStartedMonitoring)
+    Timber.i("Is started monitoring: %s", this.mGeofenceHelper.mIsStartedMonitoring)
     promise.resolve(this.mGeofenceHelper.mIsStartedMonitoring && this.mGeofenceHelper.mBootCompleted)
   }
 

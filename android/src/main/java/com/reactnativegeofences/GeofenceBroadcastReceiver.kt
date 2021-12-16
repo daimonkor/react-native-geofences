@@ -147,7 +147,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
       .setSmallIcon(bundle.getInt("notification_small_icon"))
     val notificationManager =
       context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager?
-    Timber.e("Show notification: %s, %s", notificationDetails, actionUri)
+    Timber.i("Show notification: %s, %s", notificationDetails, actionUri)
     notificationManager?.notify(Random().nextInt(), builder.build())
   }
 }
