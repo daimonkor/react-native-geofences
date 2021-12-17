@@ -76,21 +76,26 @@ class OnGeofenseEventService : JobService() {
         )
       }
 
-      (application as MainApplication).reactNativeHost.reactInstanceManager.currentReactContext
-        ?.getJSModule(RCTDeviceEventEmitter::class.java)?.apply {
-          val internalParams: WritableMap = Arguments.createMap()
-          internalParams.putInt(
-            TRANSITION_TYPE_KEY,
-            transitionType ?: TypeTransactions.UNKNOWN.typeTransaction
-          )
-          internalParams.putArray(
-            GEOFENCES_LIST_KEY,
-            ArrayUtil.toWritableArray(params?.extras?.getString(GEOFENCES_LIST_KEY)?.let {
-              val fromJson = Gson().fromJson<Array<*>>(it, object : TypeToken<Array<*>>() {}.type)
-              fromJson
-            }))
-          emit("onGeofenceEvent", internalParams)
-        }
+      try {
+        (application as MainApplication).reactNativeHost.reactInstanceManager.currentReactContext
+          ?.getJSModule(RCTDeviceEventEmitter::class.java)?.apply {
+            val internalParams: WritableMap = Arguments.createMap()
+            internalParams.putInt(
+              TRANSITION_TYPE_KEY,
+              transitionType ?: TypeTransactions.UNKNOWN.typeTransaction
+            )
+            internalParams.putArray(
+              GEOFENCES_LIST_KEY,
+              ArrayUtil.toWritableArray(params?.extras?.getString(GEOFENCES_LIST_KEY)?.let {
+                val fromJson = Gson().fromJson<Array<*>>(it, object : TypeToken<Array<*>>() {}.type)
+                fromJson
+              })
+            )
+            emit("onGeofenceEvent", internalParams)
+          }
+      }catch (exception: Exception){
+        Timber.e("Can not send event to React Native: %s", exception)
+      }
 
       geofencesList?.map {
         it.typeTransactions.entries

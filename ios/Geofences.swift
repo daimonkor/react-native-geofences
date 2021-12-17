@@ -31,13 +31,13 @@ class Geofences: NSObject, CLLocationManagerDelegate, UNUserNotificationCenterDe
 
     @objc(requestPermissions:reject:)
     func requestPermissions(_ resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock)  -> Void  {
-        self.requestLocationAuthorization( callback: { (status) in
-            resolve(status.rawValue)
-        })
+              //         self.requestLocationAuthorization( callback: { (status) in
+              //             resolve(status.rawValue)
+              //         })
 //        var locationManager = CLLocationManager()
 //        locationManager.requestAlwaysAuthorization()
 //        locationManager.allowsBackgroundLocationUpdates = true
-      //  resolve(true)
+        resolve(true)
     }
 
     @objc(permissionsStatus:reject:)
