@@ -153,7 +153,7 @@ export default function App() {
       .then((value) => setMonitoringStarted(value))
       .catch((error) => setMonitoringStarted(error.message));
 
-    const eventEmitter = new NativeEventEmitter(NativeModules.GeofencesModule);
+    const eventEmitter = new NativeEventEmitter(NativeModules.Geofences);
     const eventListener = eventEmitter.addListener(
       'onGeofenceEvent',
       (event) => {

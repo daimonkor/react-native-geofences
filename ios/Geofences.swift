@@ -2,7 +2,7 @@ import CoreLocation
 import React
 
 @objc(Geofences)
-class Geofences: NSObject, CLLocationManagerDelegate, UNUserNotificationCenterDelegate {
+class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationCenterDelegate {
 
     private var locationManager: CLLocationManager = CLLocationManager()
     private var requestLocationAuthorizationCallback: ((CLAuthorizationStatus) -> Void)?
@@ -11,12 +11,29 @@ class Geofences: NSObject, CLLocationManagerDelegate, UNUserNotificationCenterDe
         resolve(a*b)
     }*/
 
+    private var hasListeners = false;
+
     private override init() {
          super.init()
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.allowsBackgroundLocationUpdates = true
         locationManager.pausesLocationUpdatesAutomatically = false
         locationManager.delegate = self
+    }
+    
+    override func startObserving() {
+        hasListeners = true;
+        // Set up any upstream listeners or background tasks as necessary
+    }
+
+    // Will be called when this module's last listener is removed, or on dealloc.
+    override func stopObserving() {
+        hasListeners = false;
+        // Remove upstream listeners, stop unnecessary background tasks
+    }
+
+    @objc open override func supportedEvents() -> [String] {
+        return ["onGeofenceEvent"]
     }
 
     @objc(startMonitoring:reject:)
