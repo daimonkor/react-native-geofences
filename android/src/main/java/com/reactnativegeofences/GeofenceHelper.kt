@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.PromiseImpl
@@ -16,7 +17,6 @@ import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.location.LocationServices
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.icebergteam.timberjava.Timber
 import com.reactnativegeofences.models.*
 import java.lang.Exception
 
@@ -34,6 +34,7 @@ class GeofenceHelper(private val context: Context) {
     const val BOOT_COMPLETED_KEY = "BOOT_COMPLETED_KEY"
     const val GEOFENCES_LIST_KEY = "GEOFENCES_LIST_KEY"
     const val TRANSITION_TYPE_KEY = "TRANSITION_TYPE_KEY"
+    const val TAG = "GeofenceHelper"
   }
 
   init {
@@ -44,12 +45,12 @@ class GeofenceHelper(private val context: Context) {
     geofencesHolderList.forEachIndexed { index, it ->
       it.geofenceModels.forEachIndexed { index2, it ->
         val indexes = this.isExistsGeofence(it.position, true)
-        if (indexes.atGeofenceHolderModelListPosition >= 0 && mGeofencesHolderList.size > 0 && mGeofencesHolderList.size >= indexes.atGeofenceHolderModelListPosition -1 ) {
+        if (indexes.atGeofenceHolderModelListPosition >= 0 && mGeofencesHolderList.size > 0 && mGeofencesHolderList.size >= indexes.atGeofenceHolderModelListPosition - 1) {
           mGeofencesHolderList[indexes.atGeofenceHolderModelListPosition].geofenceModels.removeAt(
             indexes.atGeofenceModelListPosition
           )
         }
-        if (mGeofencesHolderList.size >0 && mGeofencesHolderList.size >= index -1 && mGeofencesHolderList[index].geofenceModels.isEmpty()) {
+        if (mGeofencesHolderList.size > 0 && mGeofencesHolderList.size >= index - 1 && mGeofencesHolderList[index].geofenceModels.isEmpty()) {
           mGeofencesHolderList.removeAt(index)
         }
       }
@@ -61,7 +62,10 @@ class GeofenceHelper(private val context: Context) {
   private fun createGeofences(callback: (geofenceIdList: Array<String>?, exception: Exception?) -> Unit) {
     try {
       if (mGeofencesHolderList.isEmpty()) {
-        Timber.e("Failure create geofences and start current geofences monitoring: please add geofences")
+        Log.e(
+          TAG,
+          String.format("Failure create geofences and start current geofences monitoring: please add geofences")
+        )
         callback(null, Exception("createGeofences error: missing geofences"))
         return
       }
@@ -72,7 +76,10 @@ class GeofenceHelper(private val context: Context) {
             Manifest.permission.ACCESS_FINE_LOCATION
           ) != PackageManager.PERMISSION_GRANTED
         ) {
-          Timber.e("Failure create geofences and start current geofences monitoring: ACCESS_FINE_LOCATION denied")
+          Log.e(
+            TAG,
+            String.format("Failure create geofences and start current geofences monitoring: ACCESS_FINE_LOCATION denied")
+          )
           callback(null, Exception("createGeofences error: ACCESS_FINE_LOCATION denied"))
           return
         }
@@ -118,15 +125,26 @@ class GeofenceHelper(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT
           )
         }).addOnSuccessListener {
-          Timber.i("Start create geofences and start current geofences monitoring successfully")
+          Log.i(
+            TAG, "Start create geofences and start current geofences monitoring successfully"
+          )
           callback(geofenceIdList.toTypedArray(), null)
         }.addOnFailureListener {
-          Timber.e("Failure create geofences and start current geofences monitoring: %s", it)
+          Log.e(
+            TAG,
+            String.format("Failure create geofences and start current geofences monitoring: %s", it)
+          )
           callback(null, Exception("createGeofences error", it))
         }
       }
     } catch (exception: Exception) {
-      Timber.e("Failure create geofences and start current geofences monitoring: %s", exception)
+      Log.e(
+        TAG,
+        String.format(
+          "Failure create geofences and start current geofences monitoring: %s",
+          exception
+        )
+      )
       callback(null, Exception("createGeofences error", exception))
     }
   }
@@ -135,7 +153,9 @@ class GeofenceHelper(private val context: Context) {
     stopMonitoring(PromiseImpl({
       this.createGeofences { idsList, exception ->
         if (exception != null) {
-          Timber.e("Failure start geofences monitoring: %s", exception)
+          Log.e(
+            TAG, String.format("Failure start geofences monitoring: %s", exception)
+          )
           promise?.reject(Exception("startMonitoring error", exception))
         } else {
           mIsStartedMonitoring = true
@@ -151,7 +171,9 @@ class GeofenceHelper(private val context: Context) {
     }, {
       this.createGeofences { idsList, exception ->
         if (exception != null) {
-          Timber.e("Failure start geofences monitoring: %s", exception)
+          Log.e(
+            TAG, String.format("Failure start geofences monitoring: %s", exception)
+          )
           promise?.reject(Exception("startMonitoring error", exception))
         } else {
           mIsStartedMonitoring = true
@@ -181,10 +203,10 @@ class GeofenceHelper(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT
           )
         }).addOnFailureListener {
-        Timber.e("Failure stop geofences monitoring: %s", it)
+        Log.e(TAG, String.format("Failure stop geofences monitoring: %s", it))
         promise?.reject(it)
       }.addOnSuccessListener {
-        Timber.i("Stop geofences monitoring successfully")
+        Log.i(TAG, "Stop geofences monitoring successfully")
         mIsStartedMonitoring = mIsStartedMonitoring.let {
           this.saveGeofencesDataToCache(mGeofencesHolderList, false, mBootCompleted)
           promise?.resolve(it)
@@ -192,7 +214,9 @@ class GeofenceHelper(private val context: Context) {
         }
       }
     } catch (exception: Exception) {
-      Timber.e("Failure stop geofences monitoring: %s", exception)
+      Log.e(
+        TAG, String.format("Failure stop geofences monitoring: %s", exception)
+      )
       promise?.reject(Exception("stopMonitoring error", exception))
     }
   }
@@ -240,7 +264,10 @@ class GeofenceHelper(private val context: Context) {
     try {
       if (filter as? Array<String> != null && filter.isNotEmpty()) {
         mGeofencingClient.removeGeofences(filter.asList()).addOnFailureListener {
-          Timber.e("Failure remove geofences and stop current geofences monitoring: %s", it)
+          Log.e(
+            TAG,
+            String.format("Failure remove geofences and stop current geofences monitoring: %s", it)
+          )
           promise.reject(it)
         }.addOnSuccessListener {
           mGeofencesHolderList.forEach {
@@ -253,7 +280,10 @@ class GeofenceHelper(private val context: Context) {
           } as ArrayList<GeofenceHolderModel>
           this.mIsStartedMonitoring = false
           this.saveCache()
-          Timber.i("Remove geofences and stop current geofences monitoring successfully")
+          Log.i(
+            TAG,
+            String.format("Remove geofences and stop current geofences monitoring successfully")
+          )
           promise.resolve(true)
         }
       } else {
@@ -270,17 +300,28 @@ class GeofenceHelper(private val context: Context) {
               PendingIntent.FLAG_UPDATE_CURRENT
             )
           }).addOnFailureListener {
-          Timber.e("Failure remove geofences and stop current geofences monitoring: %s", it)
+          Log.e(
+            TAG,
+            String.format("Failure remove geofences and stop current geofences monitoring: %s", it)
+          )
           promise.reject(it)
         }.addOnSuccessListener {
-          Timber.i("Remove geofences and stop current geofences monitoring successfully")
+          Log.i(
+            TAG, "Remove geofences and stop current geofences monitoring successfully"
+          )
           this.mIsStartedMonitoring = false
           this.saveCache()
           promise.resolve(true)
         }
       }
     } catch (exception: Exception) {
-      Timber.e("Failure remove geofences and stop current geofences monitoring: %s", exception)
+      Log.e(
+        TAG,
+        String.format(
+          "Failure remove geofences and stop current geofences monitoring: %s",
+          exception
+        )
+      )
       promise.reject(Exception("removeGeofences error", exception))
     }
   }

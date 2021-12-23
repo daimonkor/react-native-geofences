@@ -10,7 +10,6 @@ buildscript {
     repositories {
       google()
       mavenCentral()
-      jcenter()
     }
 
     dependencies {
@@ -64,7 +63,6 @@ repositories {
   }
   google()
   mavenCentral()
-  jcenter()
 }
 
 dependencies {
@@ -73,7 +71,5 @@ dependencies {
   implementation "com.facebook.react:react-native:+"  // From node_modules
   implementation "com.google.code.gson:gson:$gson"
   implementation "com.google.android.gms:play-services-location:$playServiceLocation"
-  implementation ("com.github.icebergteam:timberjava:$timber")  {
-    exclude group: 'com.intellij', module: 'annotations'
-  }
+
 }

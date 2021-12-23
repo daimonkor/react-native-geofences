@@ -10,8 +10,6 @@ import com.facebook.react.modules.core.PermissionAwareActivity
 import com.facebook.react.bridge.WritableNativeMap
 import android.content.pm.PackageManager
 import com.google.gson.Gson
-import com.icebergteam.timberjava.LineNumberDebugTree
-import com.icebergteam.timberjava.Timber
 import com.reactnativegeofences.models.*
 import java.util.HashMap
 
@@ -22,42 +20,7 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
 
   companion object {
     const val REQUEST_LOCATION_PERMISSION_CODE = 10123
-    private fun initLogger() {
-      Timber.plant(object : LineNumberDebugTree() {
-        override fun createStackElementTag(element: StackTraceElement): String {
-          var tag = element.className
-          val m = ANONYMOUS_CLASS.matcher(tag)
-          if (m.find()) {
-            tag = m.replaceAll("")
-          }
-          tag = tag.substring(tag.lastIndexOf('.') + 1)
-          // Tag length limit was removed in API 24.
-          if (tag.length <= MAX_TAG_LENGTH || Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            return String.format("%s (%s)", tag, element.lineNumber)
-          }
-          val className =
-            tag.substring(0, MAX_TAG_LENGTH).split("$".toRegex()).toTypedArray()[0]
-          return String.format(
-            "(%s.kt:%s#%s",
-            className,
-            element.lineNumber,
-            element.methodName
-          )
-        }
-
-        override fun wtf(tag: String, message: String) {
-          Log.wtf(tag, message)
-        }
-
-        override fun println(priority: Int, tag: String, message: String) {
-          Log.println(priority, tag, message)
-        }
-      })
-    }
-  }
-
-  init {
-    initLogger()
+    const val TAG = "GeofencesModule"
   }
 
   override fun getName(): String {
@@ -66,7 +29,9 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun addGeofences(geofences: ReadableMap, promise: Promise) {
-    Timber.i("Add geofences: %s", geofences.toString())
+    Log.i(
+      TAG, String.format("Add geofences: %s", geofences.toString())
+    )
     val initialTriggers = ArrayList<Int>()
     geofences.getArray("initialTriggers")?.toArrayList()?.forEach {
       initialTriggers.add((it as Double).toInt())
@@ -114,7 +79,7 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
   @RequiresApi(Build.VERSION_CODES.Q)
   @ReactMethod
   fun requestPermissions(permission: String, promise: Promise) {
-    Timber.i("Request permission %s", permission)
+    Log.i(TAG, String.format("Request permission %s", permission))
     (this.currentActivity as PermissionAwareActivity?)?.let {
       this.mPermissionsPromise = promise
       it.requestPermissions(
@@ -160,38 +125,38 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun startMonitoring(promise: Promise) {
-    Timber.i("Start monitoring: %s", this.mGeofenceHelper.mGeofencesHolderList)
+    Log.i(TAG, String.format("Start monitoring: %s", this.mGeofenceHelper.mGeofencesHolderList))
     mGeofenceHelper.startMonitoring(promise)
   }
 
   @ReactMethod
   fun stopMonitoring(promise: Promise) {
-    Timber.i("Stop monitoring: %s", this.mGeofenceHelper.mGeofencesHolderList)
+    Log.i(TAG, String.format("Stop monitoring: %s", this.mGeofenceHelper.mGeofencesHolderList))
     mGeofenceHelper.stopMonitoring(promise)
   }
 
   @ReactMethod
   fun removeGeofences(filter: ReadableArray, promise: Promise) {
-    Timber.i("Remove geofences, filter: %s", filter)
+    Log.i(TAG, String.format("Remove geofences, filter: %s", filter))
     mGeofenceHelper.removeGeofences(filter as? Array<String> ?: arrayOf(), promise)
   }
 
   @ReactMethod
   fun isExistsGeofenceById(id: String, promise: Promise) {
-    Timber.i("Is exists Geofence by id: %s", id)
+    Log.i(TAG, String.format("Is exists Geofence by id: %s", id))
     promise.resolve(mGeofenceHelper.isExistsGeofence(id))
   }
 
   @ReactMethod
   fun isExistsGeofenceByListId(ids: ReadableArray, promise: Promise) {
-    Timber.e("Is exists Geofence by list ids: %s", ids)
+    Log.i(TAG, String.format("Is exists Geofence by list ids: %s", ids))
     promise.resolve(mGeofenceHelper.isExistsGeofence(ids as? Array<String> ?: arrayOf()))
   }
 
   @ReactMethod
   fun isExistsGeofenceByListCoordinate(coordinates: ReadableArray, promise: Promise) {
     val coordinatesRefactor = coordinates.toArrayList().map {
-      it as HashMap<String,*>
+      it as HashMap<String, *>
       Coordinate(
         longitude = it.get("longitude") as Double,
         latitude = it.get("latitude") as Double,
@@ -199,27 +164,33 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
       )
     }
     val result = mGeofenceHelper.isExistsGeofence(coordinatesRefactor.toTypedArray()).let {
-      it.isNotEmpty() && !it.contains(GeofenceAtCache( -1,  -1))
+      it.isNotEmpty() && !it.contains(GeofenceAtCache(-1, -1))
     }
-    Timber.i("Is exists Geofence by list coordinates: %s, %s, %s", coordinates, result, mGeofenceHelper.mGeofencesHolderList)
+    Log.i(TAG, String.format(
+      "Is exists Geofence by list coordinates: %s, %s, %s",
+      coordinates,
+      result,
+      mGeofenceHelper.mGeofencesHolderList
+    ))
     promise.resolve(result)
   }
 
   @ReactMethod
   fun isExistsGeofenceByCoordinate(coordinate: ReadableMap, promise: Promise) {
     val coordinateModel = Coordinate(
-        longitude = coordinate.getDouble("longitude"),
-        latitude = coordinate.getDouble("latitude"),
-        radius = coordinate?.getDouble("radius")?.toInt()
-      )
-    val result = mGeofenceHelper.isExistsGeofence(coordinateModel).atGeofenceHolderModelListPosition >= 0
-    Timber.i("Is exists Geofence by coordinate: %s, %s", coordinate, result)
+      longitude = coordinate.getDouble("longitude"),
+      latitude = coordinate.getDouble("latitude"),
+      radius = coordinate?.getDouble("radius")?.toInt()
+    )
+    val result =
+      mGeofenceHelper.isExistsGeofence(coordinateModel).atGeofenceHolderModelListPosition >= 0
+    Log.i(TAG, String.format("Is exists Geofence by coordinate: %s, %s", coordinate, result))
     promise.resolve(result)
   }
 
   @ReactMethod
   fun isStartedMonitoring(promise: Promise) {
-    Timber.i("Is started monitoring: %s", this.mGeofenceHelper.mIsStartedMonitoring)
+    Log.i(TAG, String.format("Is started monitoring: %s", this.mGeofenceHelper.mIsStartedMonitoring))
     promise.resolve(this.mGeofenceHelper.mIsStartedMonitoring && this.mGeofenceHelper.mBootCompleted)
   }
 

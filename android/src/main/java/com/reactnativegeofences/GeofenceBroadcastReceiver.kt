@@ -22,16 +22,19 @@ import android.content.pm.ApplicationInfo
 import android.net.Uri
 import android.os.Build
 import android.os.PersistableBundle
+import android.util.Log
 import androidx.annotation.RequiresApi
 import com.google.android.gms.location.Geofence.*
 import com.google.gson.Gson
 import com.reactnativegeofences.GeofenceHelper.Companion.GEOFENCES_LIST_KEY
 import com.reactnativegeofences.GeofenceHelper.Companion.TRANSITION_TYPE_KEY
-import com.icebergteam.timberjava.Timber
 import com.reactnativegeofences.models.TypeTransactions
 
 
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
+  companion object {
+    const val TAG = "GeofenceBDReceiver"
+  }
 
   private fun getGeofenceTransitionDetails(event: GeofencingEvent): String {
     val transitionString: String
@@ -65,14 +68,14 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
       if (geofencingEvent.hasError()) {
         val errorMessage = GeofenceStatusCodes
           .getStatusCodeString(geofencingEvent.errorCode)
-        Timber.e("%s", errorMessage)
+        Log.e("%s", errorMessage)
         return
       }
       val geofenceTransition = geofencingEvent.geofenceTransition
       if (geofenceTransition == GEOFENCE_TRANSITION_ENTER ||
         geofenceTransition == GEOFENCE_TRANSITION_EXIT || geofenceTransition == GEOFENCE_TRANSITION_DWELL
       ) {
-        Timber.i("%s", getGeofenceTransitionDetails(geofencingEvent))
+        Log.i(TAG, getGeofenceTransitionDetails(geofencingEvent))
         val data =
           GeofenceHelper(context).getGeofencesByIds(geofencingEvent.triggeringGeofences.map {
             it.requestId
@@ -108,13 +111,13 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
           .build()
         scheduler.schedule(jobInfo)
       } else {
-        Timber.e(
+        Log.e(TAG, String.format(
           "%s", "Error: " +
             geofenceTransition
-        )
+        ))
       }
     } catch (exception: Exception) {
-      Timber.e("Can not find geofence service: %s", exception)
+      Log.e(TAG, String.format("Can not find geofence service: %s", exception))
     }
   }
 
@@ -147,7 +150,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
       .setSmallIcon(bundle.getInt("notification_small_icon"))
     val notificationManager =
       context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager?
-    Timber.i("Show notification: %s, %s", notificationDetails, actionUri)
+    Log.i(TAG, String.format("Show notification: %s, %s", notificationDetails, actionUri))
     notificationManager?.notify(Random().nextInt(), builder.build())
   }
 }
