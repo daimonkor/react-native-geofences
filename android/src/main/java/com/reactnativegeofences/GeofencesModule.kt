@@ -11,6 +11,7 @@ import com.facebook.react.bridge.WritableNativeMap
 import android.content.pm.PackageManager
 import com.google.gson.Gson
 import com.reactnativegeofences.models.*
+import com.reactnativegeofences.utils.MapUtil
 import java.util.HashMap
 
 class GeofencesModule(reactContext: ReactApplicationContext) :
@@ -121,6 +122,21 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
         promise.resolve(result)
       }
     } ?: promise.reject(Throwable("Activity is null"))
+  }
+
+  @ReactMethod
+  fun clearIconBadgeNumber(promise: Promise) {
+    promise.resolve(true)
+  }
+
+  @ReactMethod
+  fun notificationPermissionStatus(promise: Promise) {
+    promise.resolve(MapUtil.toWritableMap(mapOf<String, Any?>("settings" to null, "authorizationStatus" to 2)))
+  }
+
+  @ReactMethod
+  fun requestNotificationPermission(options: ReadableArray, promise: Promise) {
+    this.notificationPermissionStatus(promise)
   }
 
   @ReactMethod

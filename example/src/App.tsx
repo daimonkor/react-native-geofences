@@ -1,5 +1,4 @@
 import * as React from 'react';
-
 import {
   StyleSheet,
   View,
@@ -22,6 +21,10 @@ import {
   PermissionData,
   isStartedMonitoring,
   isExistsGeofenceByListCoordinate,
+  notificationPermissionStatus,
+  NotificationPermissionData,
+  requestNotificationPermission,
+  clearIconBadgeNumber,
 } from 'react-native-geofences';
 import { useState } from 'react';
 
@@ -140,6 +143,10 @@ export default function App() {
     PermissionData | string | null
   >(null);
 
+  const [notificationPermissionData, setNotificationPermissionData] = useState<
+    NotificationPermissionData | string | null
+  >(null);
+
   const [isMonitongStartedState, setMonitoringStarted] = useState<
     boolean | string | null
   >(null);
@@ -148,6 +155,10 @@ export default function App() {
     permissionsStatus()
       .then(setPermissionData)
       .catch((error) => setPermissionData(error.message));
+
+    notificationPermissionStatus()
+      .then(setNotificationPermissionData)
+      .catch((error) => setNotificationPermissionData(error.message));
 
     isStartedMonitoring()
       .then((value) => setMonitoringStarted(value))
@@ -172,7 +183,15 @@ export default function App() {
           contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
         >
           <Text>
-            is granted permissions:{' '}
+            is granted notification permissions:{' '}
+            {`${
+              notificationPermissionData != null
+                ? JSON.stringify(notificationPermissionData)
+                : 'none'
+            }`}
+          </Text>
+          <Text>
+            is granted location permissions:{' '}
             {`${
               permissionData != null ? JSON.stringify(permissionData) : 'none'
             }`}
@@ -197,10 +216,13 @@ export default function App() {
               onPress={() =>
                 requestPermissions()
                   .then((result) => {
-                    console.log('Request permissions', result);
+                    console.log('Request location permissions', result);
                   })
                   .catch((error) => {
-                    console.log('Error when permissions requested', error);
+                    console.log(
+                      'Error when location permissions requested',
+                      error
+                    );
                   })
                   .then((_) => {
                     return permissionsStatus();
@@ -210,6 +232,27 @@ export default function App() {
                   })
                   .catch((error) => {
                     console.log('Error when check permissions', error);
+                  })
+              }
+            />
+            <Button
+              title={'Request notification permission'}
+              onPress={() =>
+                requestNotificationPermission(['alert', 'badge', 'sound'])
+                  .then((value) => {
+                    console.log('Request notification permission', value);
+                  })
+                  .then((_) => {
+                    return notificationPermissionStatus();
+                  })
+                  .then((data) => {
+                    setNotificationPermissionData(data);
+                  })
+                  .catch((error) => {
+                    console.log(
+                      'Error when notification permission requested',
+                      error
+                    );
                   })
               }
             />
@@ -286,6 +329,14 @@ export default function App() {
                   })
                   .then((value) => setMonitoringStarted(value))
                   .catch((error) => setMonitoringStarted(error.message))
+              }
+            />
+            <Button
+              title={'Clear application badge number'}
+              onPress={() =>
+                clearIconBadgeNumber().then((value) => {
+                  console.log('Cleared application badge number', value);
+                })
               }
             />
           </View>

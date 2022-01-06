@@ -19,7 +19,21 @@ RCT_EXTERN_METHOD(requestPermissions:(RCTPromiseResolveBlock)resolve
 RCT_EXTERN_METHOD(permissionsStatus:(RCTPromiseResolveBlock)resolve
                  reject:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(addGeofences:(NSDictionary *)geofencesHolder                                          resolve:(RCTPromiseResolveBlock)resolve
+RCT_EXTERN_METHOD(requestPermissions:(RCTPromiseResolveBlock)resolve
+                 reject:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(requestNotificationPermission:(NSArray *)options
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(notificationPermissionStatus:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(clearIconBadgeNumber:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(addGeofences:(NSDictionary *)geofencesHolder
+                  resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(isExistsGeofenceById:(String) id

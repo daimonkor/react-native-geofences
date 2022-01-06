@@ -61,8 +61,8 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Geotify requires constant access to your phone’s location to notify you when you enter or leave a geofence.</string>
+	<string>GeofencesExample requires constant access to your phone’s location to notify you when you enter or leave a geofence.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Geotify requires constant access to your phone’s location to notify you when you enter or leave a geofence.</string>
+	<string>GeofencesExample requires constant access to your phone’s location to notify you when you enter or leave a geofence.</string>
 </dict>
 </plist>

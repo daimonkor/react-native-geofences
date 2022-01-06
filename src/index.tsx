@@ -71,6 +71,32 @@ export interface PermissionData {
   result: Object;
 }
 
+export interface NotificationPermissionData {
+  settings: NotificationSettings;
+  authorizationStatus: Object;
+}
+
+export type NotificationOption =
+  | 'alert'
+  | 'badge'
+  | 'sound'
+  | 'criticalAlert'
+  | 'carPlay'
+  | 'provisional';
+
+export type NotificationSettings = {
+  // properties only available on iOS
+  // unavailable settings will not be included in the response object
+  alert?: boolean;
+  badge?: boolean;
+  sound?: boolean;
+  carPlay?: boolean;
+  criticalAlert?: boolean;
+  provisional?: boolean;
+  lockScreen?: boolean;
+  notificationCenter?: boolean;
+};
+
 export function startMonitoring(): Promise<string[]> {
   return Geofences.startMonitoring();
 }
@@ -96,6 +122,20 @@ export function requestPermissions(): Promise<PermissionData> {
 
 export function permissionsStatus(): Promise<PermissionData> {
   return Geofences.permissionsStatus();
+}
+
+export function clearIconBadgeNumber(): Promise<boolean> {
+  return Geofences.clearIconBadgeNumber();
+}
+
+export function notificationPermissionStatus(): Promise<NotificationPermissionData> {
+  return Geofences.notificationPermissionStatus();
+}
+
+export function requestNotificationPermission(
+  options: NotificationOption[]
+): Promise<NotificationPermissionData> {
+  return Geofences.requestNotificationPermission(options);
 }
 
 export function addGeofences(
