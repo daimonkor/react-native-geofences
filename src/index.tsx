@@ -71,6 +71,13 @@ export interface PermissionData {
   result: Object;
 }
 
+export type Rationale = {
+  title?: string | null;
+  message?: string | null;
+  confirmLabel?: string | null;
+  cancelLabel?: string | null;
+};
+
 export interface NotificationPermissionData {
   settings: NotificationSettings;
   authorizationStatus: Object;
@@ -105,15 +112,19 @@ export function stopMonitoring(): Promise<boolean> {
   return Geofences.stopMonitoring();
 }
 
-export function requestPermissions(): Promise<PermissionData> {
+export function requestPermissions(
+  rationaleDialog: Rationale
+): Promise<PermissionData> {
   return Platform.OS === 'android'
     ? Geofences.requestPermissions(
-        'android.permission.ACCESS_FINE_LOCATION'
+        'android.permission.ACCESS_FINE_LOCATION',
+        rationaleDialog
       ).then((value: PermissionData) => {
         return Promise.all([
           Promise.resolve(value),
           Geofences.requestPermissions(
-            'android.permission.ACCESS_BACKGROUND_LOCATION'
+            'android.permission.ACCESS_BACKGROUND_LOCATION',
+            rationaleDialog
           ),
         ]);
       })

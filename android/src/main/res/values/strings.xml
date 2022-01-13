@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">Geofences</string>
+  <string name="rationale_message">The %1$s collect location data in background for tracking user even when the app is closed or not in use.</string>
+  <string name="confirm">Confirm</string>
+  <string name="deny">Deny</string>
+</resources>

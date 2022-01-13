@@ -214,7 +214,12 @@ export default function App() {
             <Button
               title={'Location permission'}
               onPress={() =>
-                requestPermissions()
+                requestPermissions({
+                  title: 'Title',
+                  message: 'Collect application',
+                  confirmLabel: 'Ok',
+                  cancelLabel: 'Cancel',
+                })
                   .then((result) => {
                     console.log('Request location permissions', result);
                   })

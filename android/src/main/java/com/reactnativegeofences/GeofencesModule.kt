@@ -1,5 +1,6 @@
 package com.reactnativegeofences
 
+import android.Manifest
 import android.Manifest.permission
 import android.os.Build
 import android.util.Log
@@ -9,6 +10,7 @@ import com.facebook.react.modules.core.PermissionListener
 import com.facebook.react.modules.core.PermissionAwareActivity
 import com.facebook.react.bridge.WritableNativeMap
 import android.content.pm.PackageManager
+import androidx.appcompat.app.AlertDialog
 import com.google.gson.Gson
 import com.reactnativegeofences.models.*
 import com.reactnativegeofences.utils.MapUtil
@@ -79,16 +81,48 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
 
   @RequiresApi(Build.VERSION_CODES.Q)
   @ReactMethod
-  fun requestPermissions(permission: String, promise: Promise) {
-    Log.i(TAG, String.format("Request permission %s", permission))
-    (this.currentActivity as PermissionAwareActivity?)?.let {
-      this.mPermissionsPromise = promise
-      it.requestPermissions(
-        arrayOf(
-          permission
-        ), REQUEST_LOCATION_PERMISSION_CODE, this
-      )
-    } ?: promise.reject(Throwable("Activity is null"))
+  fun requestPermissions(permission: String, rationaleDialog: ReadableMap, promise: Promise) {
+    Log.i(TAG, String.format("Request permission %s, %s", permission, rationaleDialog))
+    if(this.currentActivity as PermissionAwareActivity? == null){
+      promise.reject(Throwable("Activity is null"))
+      return
+    }
+    val requestPermission = {
+      (this.currentActivity as PermissionAwareActivity?)?.let {
+        this.mPermissionsPromise = promise
+        it.requestPermissions(
+          arrayOf(
+            permission
+          ), REQUEST_LOCATION_PERMISSION_CODE, this
+        )
+      }
+    }
+    if (permission == Manifest.permission.ACCESS_BACKGROUND_LOCATION) {
+      if ((this.currentActivity as PermissionAwareActivity?)?.shouldShowRequestPermissionRationale(
+          Manifest.permission.ACCESS_BACKGROUND_LOCATION
+        ) == true
+      ) {
+        AlertDialog.Builder(this.currentActivity!!)
+          .setTitle(rationaleDialog.getString("title") ?: this.currentActivity!!.resources.getString(R.string.app_name))
+          .setMessage(rationaleDialog.getString("message") ?: this.currentActivity!!.resources.getString(R.string.rationale_message, this.currentActivity!!.resources.getString(R.string.app_name)))
+          .setPositiveButton(
+            rationaleDialog.getString("confirmLabel") ?: this.currentActivity!!.resources.getString(R.string.confirm)
+          ) { dialog, _ ->
+            dialog.dismiss()
+            requestPermission()
+          }
+          .setNegativeButton(rationaleDialog.getString("cancelLabel") ?: this.currentActivity!!.resources.getString(R.string.deny)) { dialog, _ ->
+            dialog.dismiss()
+            promise.resolve(MapUtil.toWritableMap(mutableMapOf(permission to false) as Map<String, Any>?))
+          }
+          .create()
+          .show()
+      } else {
+        requestPermission()
+      }
+    } else {
+      requestPermission()
+    }
   }
 
   @RequiresApi(Build.VERSION_CODES.Q)
