@@ -9,9 +9,9 @@ enum ErrorImpl: Error {
 }
 
 class GeofenceMonitoringStatus{
-     var neededStartGeofencesCount: Int = 0
-     var startedGeofencesCount: Int = 0
-    private (set) var isStartedMonitoring: Bool = false
+    var neededStartGeofencesCount: Int = 0
+    var startedGeofencesCount: Int = 0
+    var isStartedMonitoring: Bool = false
     var callback : ((_ error: Error?) -> Void)?
     
     func isAllStartedGeofencesMonitoring () -> Bool{
@@ -51,6 +51,7 @@ class GeofenceMonitoringStatus{
 
 @objc(Geofences)
 class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationCenterDelegate {
+    static let CACHE_FILE_NAME = "GEOFENCES_CACHE"
     private var locationManager: CLLocationManager = CLLocationManager()
     private var requestLocationAuthorizationCallback: ((CLAuthorizationStatus) -> Void)?
     private var hasListeners = false;
@@ -59,10 +60,15 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
     
     private override init() {
         super.init()
+        self.loadCache()
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.allowsBackgroundLocationUpdates = true
         locationManager.pausesLocationUpdatesAutomatically = false
         locationManager.delegate = self
+    }
+    
+    @objc override static func requiresMainQueueSetup() -> Bool {
+        return false
     }
     
     override func startObserving() {
@@ -80,6 +86,19 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         return ["onGeofenceEvent"]
     }
     
+    private func convertErrorToTuple(error: Error) -> (Int?, String?, NSError?){
+        if let error = error as? ErrorImpl {
+            switch error {
+            case let.error(code, message, error1):
+                return (code, message, error1)
+                break
+                
+            }
+            return (nil, nil, nil)
+        }
+        return (nil, nil, nil)
+    }
+    
     @objc(startMonitoring:reject:)
     func startMonitoring( _ resolve :  @escaping RCTPromiseResolveBlock, reject:  @escaping RCTPromiseRejectBlock)  -> Void   {
         let action = {
@@ -87,8 +106,12 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
                 try {
                     self.geofenceMonitoringStatus.callback = { error in
                         if(error != nil){
-                            reject("1", "Error while starting geofence monitoring", error)
+                            print("Failure start geofences monitoring: \(String(describing: error))")
+                            let (code, message, error) = self.convertErrorToTuple(error: error!)
+                            reject(String(code ?? 0), message, error)
                         }else{
+                            print("Start current geofences monitoring successfully")
+                            self.saveCache()
                             resolve(true)
                         }
                         self.geofenceMonitoringStatus.callback = nil
@@ -119,10 +142,8 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
             }
         }
         self.stopMonitoring {result in
-            print("STOPPED")
-           action()
+            action()
         } reject: { code, message, error in
-            print("ERROR STOPPED")
             action()
         }
     }
@@ -131,16 +152,19 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
     func stopMonitoring(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock)  -> Void  {
         self.geofenceMonitoringStatus.callback = { error in
             if(error != nil){
-                reject("1", "Error while stop geofence monitoring", error)
+                print("Failure stop geofences monitoring: \(String(describing: error))")
+                let (code, message, error) = self.convertErrorToTuple(error: error!)
+                reject(String(code ?? 0), message, error)
             }else{
                 print("Stop geofences monitoring successfully")
-                resolve(true)
+                self.saveGeofencesDataToCache(geofencesHolderList: self.mGeofencesHolderList, isStartedMonitoring: false)
+                resolve(self.geofenceMonitoringStatus.isStartedMonitoring)
+                self.geofenceMonitoringStatus.isStartedMonitoring = false
             }
         }
         for region in locationManager.monitoredRegions {
             locationManager.stopMonitoring(for: region)
         }
-        print("STOPPPINMG")
         self.geofenceMonitoringStatus.stop()
     }
     
@@ -156,10 +180,6 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
             resolve(status.rawValue)
             return
         })
-        //TODO: sample send event
-        //        if(self.hasListeners){
-        //            self.sendEvent(withName: "onGeofenceEvent", body: ["test": 1])
-        //        }
     }
     
     @objc(permissionsStatus:reject:)
@@ -296,8 +316,37 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
             }
             geofenceHolderModel.geofenceModels.append(GeofenceModel(position: Coordinate(longitude: position["longitude"] as! Double, latitude: position["latitude"] as! Double, radius:position["radius"] as! Int), name: castItem.object(forKey: "name") as? String ?? "noname", id: self.generateId(), typeTransactions: transactionTypes))
         }
-        self.mGeofencesHolderList.append(geofenceHolderModel)
+        self.addGeofences(geofencesHolderList: [geofenceHolderModel])
         resolve(geofenceHolder)
+    }
+    
+    private func  addGeofences(geofencesHolderList: Array<GeofenceHolderModel>) {
+        for (index, geofenceHolder) in geofencesHolderList.enumerated() {
+            for geofenceModel in geofenceHolder.geofenceModels {
+                let indexes = self.isExistsGeofence(coordinate: geofenceModel.position, ignoreRadius: true)
+                if (indexes.atGeofenceHolderModelListPosition >= 0 && mGeofencesHolderList.count > 0 && mGeofencesHolderList.count >= indexes.atGeofenceHolderModelListPosition - 1) {
+                    mGeofencesHolderList[indexes.atGeofenceHolderModelListPosition].geofenceModels.remove(at: indexes.atGeofenceModelListPosition
+                    )
+                }
+                if (mGeofencesHolderList.count > 0 && mGeofencesHolderList.count >= index - 1 && mGeofencesHolderList[index].geofenceModels.isEmpty) {
+                    mGeofencesHolderList.remove(at: index)
+                }
+            }
+        }
+        self.mGeofencesHolderList.append(contentsOf: geofencesHolderList)
+        self.saveCache()
+    }
+    
+    private func isExistsGeofence(coordinate: Coordinate, ignoreRadius: Bool = false) -> GeofenceAtCache {
+        for (indexGeofenceHolderModelListPosition, geofenceHolder) in self.mGeofencesHolderList.enumerated() {
+            for (indexGeofenceModelListPosition, geofenceModel) in geofenceHolder.geofenceModels.enumerated() {
+                if (geofenceModel.position.latitude == coordinate.latitude && geofenceModel.position.longitude == coordinate.longitude && (!ignoreRadius) ? (geofenceModel.position.radius == coordinate.radius || (coordinate.radius == nil || coordinate.radius < 0)) : true) {return GeofenceAtCache(
+                    atGeofenceHolderModelListPosition: indexGeofenceHolderModelListPosition,
+                    atGeofenceModelListPosition: indexGeofenceModelListPosition)
+                }
+            }
+        }
+        return GeofenceAtCache(atGeofenceHolderModelListPosition: -1, atGeofenceModelListPosition: -1)
     }
     
     @objc(isExistsGeofenceById:resolve:reject:)
@@ -318,9 +367,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         }.filter { geofenceModel in
             geofenceModel != nil
         }.count > 0
-        print(
-            "Is exists Geofence by list ids: \(ids), \(result), \(self.mGeofencesHolderList)"
-        )
+        print("Is exists Geofence by list ids: \(ids), \(result), \(self.mGeofencesHolderList)")
         resolve(result)
     }
     
@@ -342,9 +389,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         }.filter { geofenceModel in
             geofenceModel != nil
         }.count > 0
-        print(
-            "Is exists Geofence by list coordinates: \(coordinates), \(result), \(self.mGeofencesHolderList)"
-        )
+        print("Is exists Geofence by list coordinates: \(coordinates), \(result), \(self.mGeofencesHolderList)")
         resolve(result)
     }
     
@@ -352,8 +397,12 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
     func removeGeofences(filter: NSArray, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock)  -> Void  {
         self.geofenceMonitoringStatus.callback = { error in
             if(error != nil){
-                reject("1", "Error while remove geofences and stop monitoring", error)
+                print("Failure remove geofences and stop current geofences monitoring: \(String(describing: error))")
+                let (code, message, error) = self.convertErrorToTuple(error: error!)
+                reject(String(code ?? 0), message, error)
             }else{
+                print("Remove geofences and stop current geofences monitoring successfully")
+                self.saveCache()
                 resolve(filter)
             }
         }
@@ -493,7 +542,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         DispatchQueue.global(qos: .default).async {
             for geofencesHolder in self.mGeofencesHolderList {
                 if(geofencesHolder.initialTriggers.count > 0 && isInitial || !isInitial){
-                    print("Contains initial triggers \(geofencesHolder.initialTriggers.count)")
+                    print("Contains initial triggers: \(geofencesHolder.initialTriggers.count)")
                     for geofenceModel in geofencesHolder.geofenceModels{
                         let region = geofenceModel.convertToCLCircularRegion() as! CLCircularRegion
                         if(isInitial){
@@ -514,16 +563,19 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        print("Success \(locations.first)")
         if(locations.first?.coordinate != nil){
-            print("NOT null")
+            print("Request location for geofence monitoring success: \(String(describing: locations.first))")
             self.checkGeofenceEvent(coordinate: locations.first!.coordinate, isInitial: true)
         }
     }
     
     private func handleEvent(for geofenceModel: GeofenceModel, typeTransaction transaction: TypeTransactions) {
         let notification = geofenceModel.typeTransactions[transaction]?.0 as NotificationDataModel?
-        print("Event \(geofenceModel.convertToCLCircularRegion())")
+        print("Geofence event: \(geofenceModel.convertToCLCircularRegion())")
+        if(self.hasListeners){
+            
+            self.sendEvent(withName: "onGeofenceEvent", body: ["GEOFENCES_LIST_KEY": geofenceModel.convertToDictonary(), "TRANSITION_TYPE_KEY": transaction.rawValue])
+        }
         if(notification != nil && notification?.message != nil && !(notification?.message?.isEmpty)!){
             let body = "\(transaction.rawValue) " + (notification?.message)!
             let notificationContent = UNMutableNotificationContent()
@@ -537,10 +589,41 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
                 trigger: trigger)
             UNUserNotificationCenter.current().add(request) { error in
                 if let error = error {
-                    print("Error: \(error)")
+                    print("Geofence handle event error: \(error)")
                 }
             }
         }
+    }
+    
+    private func saveGeofencesDataToCache(
+        geofencesHolderList: Array<GeofenceHolderModel>,
+        isStartedMonitoring: Bool
+    ) {
+        do {
+            let data = try JSONEncoder().encode(Cache(geofencesHolderList: self.mGeofencesHolderList, isStartedMonitoring: self.geofenceMonitoringStatus.isStartedMonitoring))
+            print("Save cache: \(String(data: data, encoding: .utf8)!)")
+            UserDefaults.standard.set(data, forKey: Geofences.CACHE_FILE_NAME)
+        } catch {
+            print("Error encoding cache")
+        }
+    }
+    
+    func saveCache() {
+        saveGeofencesDataToCache(geofencesHolderList: self.mGeofencesHolderList, isStartedMonitoring: self.geofenceMonitoringStatus.isStartedMonitoring)
+    }
+    
+    func loadCache() {
+        let cache = self.getGeofencesDataFromCache()
+        self.mGeofencesHolderList = cache.geofencesHolderList
+        self.geofenceMonitoringStatus.isStartedMonitoring = cache.isStartedMonitoring
+    }
+    
+    private func getGeofencesDataFromCache() -> Cache {
+        guard let savedData = UserDefaults.standard.data(forKey: Geofences.CACHE_FILE_NAME) else { return Cache(geofencesHolderList: [], isStartedMonitoring: false) }
+        if let savedGeotifications = try? JSONDecoder().decode(Cache.self, from: savedData) as Cache {
+            return savedGeotifications
+        }
+        return Cache(geofencesHolderList: [], isStartedMonitoring: false)
     }
 }
 
