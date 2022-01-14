@@ -8,6 +8,20 @@ enum ErrorImpl: Error {
     case error(code: Int, message: String, error: NSError? = nil)
 }
 
+class ResponseModel: Decodable{
+    let code: Int?
+   // let data: [String: Any?]
+    let http_code: Int?
+    let msg: String?
+    
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeysImpl.self)
+        self.code = try? container.decode(Int.self, forKey: CodingKeysImpl(stringValue: "code"))
+        self.msg = try? container.decode(String.self, forKey: CodingKeysImpl(stringValue: "msg"))
+        self.http_code = try? container.decode(Int.self, forKey: CodingKeysImpl(stringValue: "http_code"))
+    }
+}
+
 class GeofenceMonitoringStatus{
     var neededStartGeofencesCount: Int = 0
     var startedGeofencesCount: Int = 0
@@ -575,6 +589,23 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         if(self.hasListeners){
             
             self.sendEvent(withName: "onGeofenceEvent", body: ["GEOFENCES_LIST_KEY": geofenceModel.convertToDictonary(), "TRANSITION_TYPE_KEY": transaction.rawValue])
+            let extraData = geofenceModel.typeTransactions[transaction]?.1
+            if(extraData != nil){
+                let url = extraData?["url"]
+                let headers = extraData?["headers"]
+                let body = extraData?["body"]
+                if(url != nil){
+                    HttpClient.dataRequest(with: url as! String, headers: headers as? [String: Any?], body: body as? [String: Any?], objectType: ResponseModel.self, completion: {result in
+                        print(result)
+                    })
+                }               
+            }
+//            if let myDelegate = UIApplication.sharedApplication().delegate as? AppDelegate {
+//               myDelegate.someMethod()
+//            }
+            
+           //UIApplication.sharedApplication().delegate as AppDelegate
+            
         }
         if(notification != nil && notification?.message != nil && !(notification?.message?.isEmpty)!){
             let body = "\(transaction.rawValue) " + (notification?.message)!
