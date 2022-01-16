@@ -87,4 +87,18 @@ static void InitializeFlipper(UIApplication *application) {
     completionHandler();
 }
 
+
+- (void) geofenceEvent:(NSDictionary *) geofenceModel geofenceManager: (id<GeofenceManagment>) geofenceManager  {
+  NSLog(@"data344 %@", geofenceModel);
+  
+//  [geofenceManager stopMonitoring:^(id result) {
+//
+//  } reject:^(NSString *code, NSString *message, NSError *error) {
+//
+//  }];
+  
+  [HttpClient hello];
+
+}
+
 @end

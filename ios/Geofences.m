@@ -3,10 +3,6 @@
 
 @interface RCT_EXTERN_MODULE(Geofences, RCTEventEmitter)
 
-/*RCT_EXTERN_METHOD(multiply:(float)a withB:(float)b
-                 withResolver:(RCTPromiseResolveBlock)resolve
-                 withRejecter:(RCTPromiseRejectBlock)reject)*/
-
 RCT_EXTERN_METHOD(startMonitoring:(RCTPromiseResolveBlock)resolve
                  reject:(RCTPromiseRejectBlock)reject)
 
