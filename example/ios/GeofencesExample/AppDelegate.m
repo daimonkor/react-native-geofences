@@ -1,10 +1,3 @@
-/**
- * Copyright (c) Facebook, Inc. and its affiliates.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
 #import "AppDelegate.h"
 
 #import <React/RCTBridge.h>
@@ -63,11 +56,9 @@ static void InitializeFlipper(UIApplication *application) {
 #endif
 }
 
-
 - (void)userNotificationCenter:(UNUserNotificationCenter *)center
        willPresentNotification:(UNNotification *)notification
          withCompletionHandler:(void (^)(UNNotificationPresentationOptions options))completionHandler {
-    
     /**
      If your app is in the foreground when a notification arrives, the notification center calls this method to deliver the notification directly to your app. If you implement this method, you can take whatever actions are necessary to process the notification and update your app. When you finish, execute the completionHandler block and specify how you want the system to alert the user, if at all.
      
@@ -75,14 +66,12 @@ static void InitializeFlipper(UIApplication *application) {
      see https://developer.apple.com/reference/usernotifications/unusernotificationcenterdelegate/1649518-usernotificationcenter?language=objc
      
      **/
-    
     NSLog(@"APPDELEGATE: willPresentNotification %@", notification.request.content.userInfo);
   
   completionHandler(UNAuthorizationOptionSound | UNAuthorizationOptionAlert | UNAuthorizationOptionBadge);
 }
 
 - (void)userNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void (^)(void))completionHandler {
-    
     /**
      Use this method to perform the tasks associated with your app’s custom actions. When the user responds to a notification, the system calls this method with the results. You use this method to perform the task associated with that action, if at all. At the end of your implementation, you must call the completionHandler block to let the system know that you are done processing the notification.
      
@@ -92,33 +81,9 @@ static void InitializeFlipper(UIApplication *application) {
      
      see https://developer.apple.com/reference/usernotifications/unusernotificationcenterdelegate/1649501-usernotificationcenter?language=objc
      
-     **/
-    
+     **/    
     NSLog(@"APPDELEGATE: didReceiveNotificationResponse: withCompletionHandler %@", response.notification.request.content.userInfo);
-    
-    
-    
     completionHandler();
-}
-
-- (void)applicationWillResignActive:(UIApplication *)application {
-  //NSLog(@"1applicationDidBecomeActive");
-}
-
-- (void)applicationDidEnterBackground:(UIApplication *)application {
-  //NSLog(@"2applicationDidBecomeActive");
-}
-
-- (void)applicationWillEnterForeground:(UIApplication *)application {
- // NSLog(@"3applicationDidBecomeActive");
-}
-
-- (void)applicationDidBecomeActive:(UIApplication *)application {
-  //NSLog(@"4applicationDidBecomeActive");
-}
-
-- (void)applicationWillTerminate:(UIApplication *)application {
-  //NSLog(@"5applicationDidBecomeActive");
 }
 
 @end
