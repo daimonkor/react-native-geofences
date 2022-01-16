@@ -595,9 +595,9 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
                 let headers = extraData?["headers"]
                 let body = extraData?["body"]
                 if(url != nil){
-                    HttpClient.dataRequest(with: url as! String, headers: headers as? [String: Any?], body: body as? [String: Any?], objectType: ResponseModel.self, completion: {result in
-                        print(result)
-                    })
+//                    HttpClient.dataRequest(with: url as! String, headers: headers as? [String: Any?], body: body as? [String: Any?], objectType: ResponseModel.self, completion: {result in
+//                        print(result)
+//                    })
                 }               
             }
 //            if let myDelegate = UIApplication.sharedApplication().delegate as? AppDelegate {

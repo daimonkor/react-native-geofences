@@ -7,10 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-
-		5E555C0D2413F4C50049A1A2 /* Geofences.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* Geofences.m */; };
-		F4FF95D7245B92E800C19C63 /*  Geofences.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF95D6245B92E800C19C63 /*  Geofences.swift */; };
-
+		F4FF95D7245B92E800C19C63 /* Geofences.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF95D6245B92E800C19C63 /* Geofences.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -27,11 +24,19 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libGeofences.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGeofences.a; sourceTree = BUILT_PRODUCTS_DIR; };
-
+		6FD39BBE2794CD2A00D64EC1 /* Coordinate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Coordinate.swift; sourceTree = "<group>"; };
+		6FD39BBF2794CD2A00D64EC1 /* GeofenceHolderModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeofenceHolderModel.swift; sourceTree = "<group>"; };
+		6FD39BC02794CD2A00D64EC1 /* CodingKeysImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodingKeysImpl.swift; sourceTree = "<group>"; };
+		6FD39BC12794CD2A00D64EC1 /* TypeTransactions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeTransactions.swift; sourceTree = "<group>"; };
+		6FD39BC22794CD2A00D64EC1 /* GeofenceModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeofenceModel.swift; sourceTree = "<group>"; };
+		6FD39BC32794CD2A00D64EC1 /* NotificationDataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationDataModel.swift; sourceTree = "<group>"; };
+		6FD39BC42794CD2A00D64EC1 /* GeofenceHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeofenceHelper.swift; sourceTree = "<group>"; };
+		6FD39BC52794CD2A00D64EC1 /* Cache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cache.swift; sourceTree = "<group>"; };
+		6FD39BC62794CD2A00D64EC1 /* GeofenceAtCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeofenceAtCache.swift; sourceTree = "<group>"; };
+		6FD39BC72794CD2A00D64EC1 /* InitialTriggers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialTriggers.swift; sourceTree = "<group>"; };
 		B3E7B5891CC2AC0600A0062D /* Geofences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Geofences.m; sourceTree = "<group>"; };
 		F4FF95D5245B92E700C19C63 /* Geofences-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Geofences-Bridging-Header.h"; sourceTree = "<group>"; };
 		F4FF95D6245B92E800C19C63 /* Geofences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Geofences.swift; sourceTree = "<group>"; };
-
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,11 +61,19 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
-
+				6FD39BC52794CD2A00D64EC1 /* Cache.swift */,
+				6FD39BC02794CD2A00D64EC1 /* CodingKeysImpl.swift */,
+				6FD39BBE2794CD2A00D64EC1 /* Coordinate.swift */,
+				6FD39BC62794CD2A00D64EC1 /* GeofenceAtCache.swift */,
+				6FD39BC42794CD2A00D64EC1 /* GeofenceHelper.swift */,
+				6FD39BBF2794CD2A00D64EC1 /* GeofenceHolderModel.swift */,
+				6FD39BC22794CD2A00D64EC1 /* GeofenceModel.swift */,
+				6FD39BC72794CD2A00D64EC1 /* InitialTriggers.swift */,
+				6FD39BC32794CD2A00D64EC1 /* NotificationDataModel.swift */,
+				6FD39BC12794CD2A00D64EC1 /* TypeTransactions.swift */,
 				F4FF95D6245B92E800C19C63 /* Geofences.swift */,
 				B3E7B5891CC2AC0600A0062D /* Geofences.m */,
 				F4FF95D5245B92E700C19C63 /* Geofences-Bridging-Header.h */,
-
 				134814211AA4EA7D00B7C361 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -122,10 +135,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-
 				F4FF95D7245B92E800C19C63 /* Geofences.swift in Sources */,
-				B3E7B58A1CC2AC0600A0062D /* Geofences.m in Sources */,
-
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -238,11 +248,9 @@
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = Geofences;
 				SKIP_INSTALL = YES;
-
 				SWIFT_OBJC_BRIDGING_HEADER = "Geofences-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-
 			};
 			name = Debug;
 		};
@@ -259,10 +267,8 @@
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = Geofences;
 				SKIP_INSTALL = YES;
-
 				SWIFT_OBJC_BRIDGING_HEADER = "Geofences-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
-
 			};
 			name = Release;
 		};
