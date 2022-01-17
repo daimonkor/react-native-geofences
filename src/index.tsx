@@ -104,6 +104,12 @@ export type NotificationSettings = {
   notificationCenter?: boolean;
 };
 
+export enum IOSErrors {
+  GEOFENCES_MISSING_ERROR_CODE = '10',
+  DEVICE_IS_NOT_SUPPORTED_GEOFENCES_ERROR_CODE = '11',
+  UNKNOWN_ERROR_CODE = '-1',
+}
+
 export function startMonitoring(): Promise<string[]> {
   return Geofences.startMonitoring();
 }

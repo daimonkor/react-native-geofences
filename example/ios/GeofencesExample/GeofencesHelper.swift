@@ -1,5 +1,5 @@
 //
-//  HttpClient.swift
+//  GeofencesHelper.swift
 //  GeofencesExample
 //
 //  Created by Dima on 17.01.2022.
@@ -45,10 +45,26 @@ class ResponseModel: Decodable{
 }
 
 
-@objc(HttpClient)
-class HttpClient: NSObject {
+@objc(GeofencesHelper)
+class GeofencesHelper: NSObject {
   override init(){
     super.init()
+  }
+  
+  @objc static func openUrl(notification: UNNotification?){
+    let userInfo = notification?.request.content.userInfo;
+    let siteURL = userInfo?["actionUrl"] as? String;
+    if(siteURL != nil){
+      guard let url = URL(string: siteURL!) else {
+        return //be safe
+      }
+      
+      if #available(iOS 10.0, *) {
+        UIApplication.shared.open(url, options: [:], completionHandler: nil)
+      } else {
+        UIApplication.shared.openURL(url)
+      }
+    }
   }
   
   @objc
@@ -60,7 +76,7 @@ class HttpClient: NSObject {
       let headers = extraData?["headers"]
       let body = extraData?["body"]
       if(url != nil){
-        self.dataRequest(with: url as! String, headers: headers as? [String: Any?], body: body as? [String: Any?], objectType: ResponseModel.self, completion: {result in
+        self.dataRequest(with: url!, headers: headers as? [String: Any?], body: body as? [String: Any?], objectType: ResponseModel.self, completion: {result in
           print("Response result: \(result)")
         })
       }

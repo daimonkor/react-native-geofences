@@ -4,60 +4,17 @@ import Accelerate
 import UserNotifications
 import UIKit
 
-enum ErrorImpl: Error {
-    case error(code: Int, message: String, error: NSError? = nil)
-}
-
-
-class GeofenceMonitoringStatus{
-    var neededStartGeofencesCount: Int = 0
-    var startedGeofencesCount: Int = 0
-    var isStartedMonitoring: Bool = false
-    var callback : ((_ error: Error?) -> Void)?
-    
-    func isAllStartedGeofencesMonitoring () -> Bool{
-        return startedGeofencesCount >= neededStartGeofencesCount
-    }
-    
-    func reset(){
-        self.neededStartGeofencesCount = 0
-        self.startedGeofencesCount = 0
-        self.isStartedMonitoring = false
-        self.callback = nil
-    }
-    
-    func start(neededStartGeofencesCount: Int){
-        self.neededStartGeofencesCount = neededStartGeofencesCount
-    }
-    
-    func addStartGeofenceCounter(){
-        self.startedGeofencesCount += 1
-        self.isStartedMonitoring = true
-    }
-    
-    func stop(){
-        let callback = self.callback
-        self.reset()
-        callback?(nil)
-    }
-    
-    func error(error: Error){
-        let callback = self.callback
-        self.reset()
-        callback?(error)
-    }
-    
-    init(){}
-}
-
 @objc(Geofences)
 class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationCenterDelegate, GeofenceManagment {
-    static let CACHE_FILE_NAME = "GEOFENCES_CACHE"
     private var locationManager: CLLocationManager = CLLocationManager()
     private var requestLocationAuthorizationCallback: ((CLAuthorizationStatus) -> Void)?
     private var hasListeners = false;
     private var mGeofencesHolderList = Array<GeofenceHolderModel>()
     private var geofenceMonitoringStatus = GeofenceMonitoringStatus()
+    
+    static let GEOFENCES_MISSING_ERROR_CODE = 10
+    static let DEVICE_IS_NOT_SUPPORTED_GEOFENCES_ERROR_CODE = 11
+    static let UNKNOWN_ERROR_CODE = -1
     
     private override init() {
         super.init()
@@ -87,19 +44,6 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         return ["onGeofenceEvent"]
     }
     
-    private func convertErrorToTuple(error: Error) -> (Int?, String?, NSError?){
-        if let error = error as? ErrorImpl {
-            switch error {
-            case let.error(code, message, error1):
-                return (code, message, error1)
-                break
-                
-            }
-            return (nil, nil, nil)
-        }
-        return (nil, nil, nil)
-    }
-    
     @objc(startMonitoring:reject:)
     func startMonitoring( _ resolve :  @escaping RCTPromiseResolveBlock, reject:  @escaping RCTPromiseRejectBlock)  -> Void   {
         let action = {
@@ -108,7 +52,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
                     self.geofenceMonitoringStatus.callback = { error in
                         if(error != nil){
                             print("Failure start geofences monitoring: \(String(describing: error))")
-                            let (code, message, error) = self.convertErrorToTuple(error: error!)
+                            let (code, message, error) = (error as? ErrorImpl)?.convertToTuple() ?? (Geofences.UNKNOWN_ERROR_CODE, "Unknown error", nil)
                             reject(String(code ?? 0), message, error)
                         }else{
                             print("Start current geofences monitoring successfully")
@@ -119,7 +63,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
                     }
                     if (self.mGeofencesHolderList.isEmpty) {
                         print("Failure create geofences and start current geofences monitoring: please add geofences")
-                        throw ErrorImpl.error(code: 2, message: "Start monitoring error: missing geofences")
+                        throw ErrorImpl.error(code: Geofences.GEOFENCES_MISSING_ERROR_CODE, message: "Start monitoring error: missing geofences")
                     }
                     let countGeofences = self.mGeofencesHolderList.map{ holder in
                         holder.geofenceModels
@@ -129,7 +73,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
                     if !CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self) {
                         print(
                             "Geofencing is not supported on this device!")
-                        throw ErrorImpl.error(code: 0, message: "Geofencing is not supported on this device!")
+                        throw ErrorImpl.error(code: Geofences.DEVICE_IS_NOT_SUPPORTED_GEOFENCES_ERROR_CODE, message: "Geofencing is not supported on this device!")
                     }
                     for geofencesHolder in self.mGeofencesHolderList {
                         for geofenceModel in geofencesHolder.geofenceModels{
@@ -138,8 +82,10 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
                     }
                     self.locationManager.requestLocation()
                 }()
-            }catch {
+            }catch let error as ErrorImpl{
                 self.geofenceMonitoringStatus.error(error: error)
+            }catch {
+                self.geofenceMonitoringStatus.error(error: ErrorImpl.error(code: Geofences.UNKNOWN_ERROR_CODE, message: error.localizedDescription, error: error as NSError))
             }
         }
         self.stopMonitoring {result in
@@ -154,7 +100,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         self.geofenceMonitoringStatus.callback = { error in
             if(error != nil){
                 print("Failure stop geofences monitoring: \(String(describing: error))")
-                let (code, message, error) = self.convertErrorToTuple(error: error!)
+                let (code, message, error) = (error as? ErrorImpl)?.convertToTuple() ?? (Geofences.UNKNOWN_ERROR_CODE, "Unknown error", nil)
                 reject(String(code ?? 0), message, error)
             }else{
                 print("Stop geofences monitoring successfully")
@@ -321,7 +267,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         resolve(geofenceHolder)
     }
     
-    private func  addGeofences(geofencesHolderList: Array<GeofenceHolderModel>) {
+    private func addGeofences(geofencesHolderList: Array<GeofenceHolderModel>) {
         for (index, geofenceHolder) in geofencesHolderList.enumerated() {
             for geofenceModel in geofenceHolder.geofenceModels {
                 let indexes = self.isExistsGeofence(coordinate: geofenceModel.position, ignoreRadius: true)
@@ -399,7 +345,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         self.geofenceMonitoringStatus.callback = { error in
             if(error != nil){
                 print("Failure remove geofences and stop current geofences monitoring: \(String(describing: error))")
-                let (code, message, error) = self.convertErrorToTuple(error: error!)
+                let (code, message, error) = (error as? ErrorImpl)?.convertToTuple() ?? (Geofences.UNKNOWN_ERROR_CODE, "Unknown error", nil)
                 reject(String(code ?? 0), message, error)
             }else{
                 print("Remove geofences and stop current geofences monitoring successfully")
@@ -583,6 +529,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
             notificationContent.body = body
             notificationContent.sound = .default
             notificationContent.badge = UIApplication.shared.applicationIconBadgeNumber + 1 as NSNumber
+            notificationContent.userInfo = ["actionUrl" : notification?.actionUri]
             let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false )
             let request = UNNotificationRequest(
                 identifier: geofenceModel.id + generateId(),
@@ -594,6 +541,20 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
                 }
             }
         }
+    }
+}
+
+extension Geofences {
+    static let CACHE_FILE_NAME = "GEOFENCES_CACHE"
+    
+    func saveCache() {
+        saveGeofencesDataToCache(geofencesHolderList: self.mGeofencesHolderList, isStartedMonitoring: self.geofenceMonitoringStatus.isStartedMonitoring)
+    }
+    
+    func loadCache() {
+        let cache = self.getGeofencesDataFromCache()
+        self.mGeofencesHolderList = cache.geofencesHolderList
+        self.geofenceMonitoringStatus.isStartedMonitoring = cache.isStartedMonitoring
     }
     
     private func saveGeofencesDataToCache(
@@ -609,16 +570,6 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         }
     }
     
-    func saveCache() {
-        saveGeofencesDataToCache(geofencesHolderList: self.mGeofencesHolderList, isStartedMonitoring: self.geofenceMonitoringStatus.isStartedMonitoring)
-    }
-    
-    func loadCache() {
-        let cache = self.getGeofencesDataFromCache()
-        self.mGeofencesHolderList = cache.geofencesHolderList
-        self.geofenceMonitoringStatus.isStartedMonitoring = cache.isStartedMonitoring
-    }
-    
     private func getGeofencesDataFromCache() -> Cache {
         guard let savedData = UserDefaults.standard.data(forKey: Geofences.CACHE_FILE_NAME) else { return Cache(geofencesHolderList: [], isStartedMonitoring: false) }
         if let savedGeotifications = try? JSONDecoder().decode(Cache.self, from: savedData) as Cache {
@@ -627,50 +578,3 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         return Cache(geofencesHolderList: [], isStartedMonitoring: false)
     }
 }
-
-
-//
-//class LocationManager: NSObject, CLLocationManagerDelegate {
-//    static let shared = LocationManager()
-//    private var locationManager: CLLocationManager = CLLocationManager()
-//    private var requestLocationAuthorizationCallback: ((CLAuthorizationStatus) -> Void)?
-//
-//    private override init() {
-//         super.init()
-//        locationManager.desiredAccuracy = kCLLocationAccuracyBest
-//        locationManager.allowsBackgroundLocationUpdates = true
-//         locationManager.delegate = self
-//    }
-//
-//    public func requestLocationAuthorization(callback: ((CLAuthorizationStatus) -> Void)?) {
-//
-//        let currentStatus = CLLocationManager.authorizationStatus()
-//
-//        // Only ask authorization if it was never asked before
-//        guard currentStatus == .notDetermined else { return }
-//
-//        // Starting on iOS 13.4.0, to get .authorizedAlways permission, you need to
-//        // first ask for WhenInUse permission, then ask for Always permission to
-//        // get to a second system alert
-//        if #available(iOS 13.4, *) {
-//            self.requestLocationAuthorizationCallback = { status in
-//                print("SSSS", status)
-//                if status == .authorizedWhenInUse {
-//                    self.locationManager.requestAlwaysAuthorization()
-//
-//                }else{
-//                    callback?(status)
-//                }
-//            }
-//            self.locationManager.requestWhenInUseAuthorization()
-//        } else {
-//            self.locationManager.requestAlwaysAuthorization()
-//        }
-//    }
-//    // MARK: - CLLocationManagerDelegate
-//
-//    func locationManager(_ manager: CLLocationManager,
-//                         didChangeAuthorization status: CLAuthorizationStatus) {
-//        self.requestLocationAuthorizationCallback?(status)
-//    }
-//}

@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6F4242A02795738B00F008B5 /* GeofenceMonitoringStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F42429F2795738B00F008B5 /* GeofenceMonitoringStatus.swift */; };
+		6F4242A2279573D000F008B5 /* ErrorImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F4242A1279573D000F008B5 /* ErrorImpl.swift */; };
 		F4FF95D7245B92E800C19C63 /* Geofences.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF95D6245B92E800C19C63 /* Geofences.swift */; };
 /* End PBXBuildFile section */
 
@@ -24,6 +26,8 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libGeofences.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGeofences.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		6F42429F2795738B00F008B5 /* GeofenceMonitoringStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeofenceMonitoringStatus.swift; sourceTree = "<group>"; };
+		6F4242A1279573D000F008B5 /* ErrorImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorImpl.swift; sourceTree = "<group>"; };
 		6FD39BBE2794CD2A00D64EC1 /* Coordinate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Coordinate.swift; sourceTree = "<group>"; };
 		6FD39BBF2794CD2A00D64EC1 /* GeofenceHolderModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeofenceHolderModel.swift; sourceTree = "<group>"; };
 		6FD39BC02794CD2A00D64EC1 /* CodingKeysImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodingKeysImpl.swift; sourceTree = "<group>"; };
@@ -61,6 +65,8 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
+				6F4242A1279573D000F008B5 /* ErrorImpl.swift */,
+				6F42429F2795738B00F008B5 /* GeofenceMonitoringStatus.swift */,
 				6FD39BC52794CD2A00D64EC1 /* Cache.swift */,
 				6FD39BC02794CD2A00D64EC1 /* CodingKeysImpl.swift */,
 				6FD39BBE2794CD2A00D64EC1 /* Coordinate.swift */,
@@ -136,6 +142,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				F4FF95D7245B92E800C19C63 /* Geofences.swift in Sources */,
+				6F4242A2279573D000F008B5 /* ErrorImpl.swift in Sources */,
+				6F4242A02795738B00F008B5 /* GeofenceMonitoringStatus.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
