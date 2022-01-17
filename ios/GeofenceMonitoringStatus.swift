@@ -1,11 +1,3 @@
-//
-//  Geofencessdgf.swift
-//  Geofences
-//
-//  Created by Dima on 17.01.2022.
-//  Copyright © 2022 Facebook. All rights reserved.
-//
-
 import Foundation
 
 class GeofenceMonitoringStatus{

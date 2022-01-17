@@ -9,7 +9,6 @@
 #import <UIKit/UIKit.h>
 #import <UserNotifications/UserNotifications.h>
 #import "GeofencesExample-Swift.h"
-
 #import "Geofences-Bridging-Header.h"
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate, RCTBridgeDelegate, UNUserNotificationCenterDelegate, GeofenceDelegate>
