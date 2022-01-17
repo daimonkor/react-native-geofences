@@ -168,11 +168,20 @@ export default function App() {
     const eventListener = eventEmitter.addListener(
       'onGeofenceEvent',
       (event) => {
-        console.log('onGeofenceEvent', event);
+        console.log('onGeofenceEvent', JSON.stringify(event));
       }
     );
+
+    const stopListener = eventEmitter.addListener(
+      'onStopShiftByServer',
+      (event) => {
+        console.log('onStopShiftByServer', JSON.stringify(event));
+      }
+    );
+
     return () => {
       eventListener.remove();
+      stopListener.remove();
     };
   }, []);
 

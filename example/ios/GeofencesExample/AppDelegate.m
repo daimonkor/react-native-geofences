@@ -92,4 +92,8 @@ static void InitializeFlipper(UIApplication *application) {
   [request requestWithGeofenceModel:geofenceModel geofenceManager:geofenceManager];
 }
 
+- (void)onInitGeofencesModule:(id<GeofenceManagment>)geofenceManager {
+  [geofenceManager addCustomEvent:@"onStopShiftByServer"];
+}
+
 @end

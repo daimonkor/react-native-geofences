@@ -47,6 +47,8 @@ class ResponseModel: Decodable{
 
 @objc(GeofencesHelper)
 class GeofencesHelper: NSObject {
+  static let STOP_SHIFT_KEY = "STOP_SHIFT_KEY"
+  
   override init(){
     super.init()
   }
@@ -77,6 +79,12 @@ class GeofencesHelper: NSObject {
       let body = extraData?["body"]
       if(url != nil){
         self.dataRequest(with: url!, headers: headers as? [String: Any?], body: body as? [String: Any?], objectType: ResponseModel.self, completion: {result in
+//          geofenceManager.sendEvent("onStopShiftByServer", body: [GeofencesHelper.STOP_SHIFT_KEY: true])
+//          geofenceManager.stopMonitoring { data in
+//            
+//          } reject: { code, message, error in
+//            
+//          }          
           print("Response result: \(result)")
         })
       }

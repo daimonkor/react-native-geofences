@@ -11,11 +11,12 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
     private var hasListeners = false;
     private var mGeofencesHolderList = Array<GeofenceHolderModel>()
     private var geofenceMonitoringStatus = GeofenceMonitoringStatus()
+    private var customEvents: Array<String> = []
     
     static let GEOFENCES_MISSING_ERROR_CODE = 10
     static let DEVICE_IS_NOT_SUPPORTED_GEOFENCES_ERROR_CODE = 11
     static let UNKNOWN_ERROR_CODE = -1
-    
+        
     private override init() {
         super.init()
         self.loadCache()
@@ -23,6 +24,13 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         locationManager.allowsBackgroundLocationUpdates = true
         locationManager.pausesLocationUpdatesAutomatically = false
         locationManager.delegate = self
+        DispatchQueue.main.async {
+            (UIApplication.shared.delegate as? GeofenceDelegate)?.onInitGeofencesModule(self)
+        }
+    }
+    
+    func addCustomEvent(_ eventName: String!) {
+        self.customEvents.append(eventName)
     }
     
     @objc override static func requiresMainQueueSetup() -> Bool {
@@ -41,7 +49,16 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
     }
     
     @objc open override func supportedEvents() -> [String] {
+        if(self.customEvents.count > 0){
+            var list: Array<String> = ["onGeofenceEvent"]
+            list.append (contentsOf: self.customEvents)
+            return list
+        }
         return ["onGeofenceEvent"]
+    }
+    
+    func sendEvent(_ withName: String, body: [AnyHashable : Any]) {
+        self.sendEvent(withName: withName, body: body)
     }
     
     @objc(startMonitoring:reject:)
@@ -97,6 +114,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
     
     @objc(stopMonitoring:reject:)
     func stopMonitoring(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock)  -> Void  {
+        let isStartedMonitoring = self.geofenceMonitoringStatus.isStartedMonitoring
         self.geofenceMonitoringStatus.callback = { error in
             if(error != nil){
                 print("Failure stop geofences monitoring: \(String(describing: error))")
@@ -105,7 +123,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
             }else{
                 print("Stop geofences monitoring successfully")
                 self.saveGeofencesDataToCache(geofencesHolderList: self.mGeofencesHolderList, isStartedMonitoring: false)
-                resolve(self.geofenceMonitoringStatus.isStartedMonitoring)
+                resolve(isStartedMonitoring)
                 self.geofenceMonitoringStatus.isStartedMonitoring = false
             }
         }
