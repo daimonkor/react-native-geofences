@@ -31,23 +31,22 @@ import { useState } from 'react';
 const mockGeofences = {
   geofences: [
     {
-      position: { latitude: 40.7415, longitude: -74.0034, radius: 200 },
+      position: { latitude: 40.7415, longitude: -74.0034, radius: 50 },
       name: 'First point',
       expiredDuration: 30000000,
       typeTransactions: [
         {
           type: TypeTransactions.ENTER,
           notification: {
-            message: null, //'Enter to first point',
+            message: 'Enter to first point',
             actionUri: 'https://test1.com',
           } as NotificationData,
           extraData: {
-            headers: {
-              token: 'fsfssfsdfsdfsdfsdf',
-              appId: 'dsgfsdgdfgfdg',
+            body: {
+              name: 'morpheus',
+              job: 'zion resident',
             },
-            body: { border_id: 10, state: 'enter' },
-            url: 'https://basjeapi.com',
+            url: 'https://reqres.in/api/users/2',
           },
         },
 
@@ -55,7 +54,7 @@ const mockGeofences = {
           type: TypeTransactions.EXIT,
           notification: {
             message: 'Exit from first point',
-            actionUri: 'https://youtube.com',
+            actionUri: null,
           } as NotificationData,
           extraData: {
             headers: {
@@ -86,7 +85,7 @@ const mockGeofences = {
           type: TypeTransactions.EXIT,
           notification: {
             message: 'Exit from second point',
-            actionUri: 'deeplink',
+            actionUri: null,
           } as NotificationData,
         },
       ],
@@ -101,7 +100,7 @@ const mockGeofences = {
           type: TypeTransactions.EXIT,
           notification: {
             message: 'Exit from third point',
-            actionUri: 'deeplink',
+            actionUri: 'https://youtube.com',
           } as NotificationData,
           extraData: {
             headers: {
@@ -117,7 +116,7 @@ const mockGeofences = {
           type: TypeTransactions.ENTER,
           notification: {
             message: 'Enter to third point',
-            actionUri: 'deeplink',
+            actionUri: null,
           } as NotificationData,
           extraData: {
             headers: {
@@ -295,7 +294,11 @@ export default function App() {
                     console.log('Started monitoring', value);
                   })
                   .catch((error) => {
-                    console.log('Error when started monitoring', error);
+                    console.log(
+                      'Error when started monitoring',
+                      error,
+                      error.code
+                    );
                   })
                   .then((_) => {
                     return isStartedMonitoring();

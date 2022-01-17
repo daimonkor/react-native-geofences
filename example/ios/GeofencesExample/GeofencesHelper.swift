@@ -31,16 +31,11 @@ struct CodingKeys: CodingKey {
 }
 
 class ResponseModel: Decodable{
-  let code: Int?
-  // let data: [String: Any?]
-  let http_code: Int?
-  let msg: String?
+  let id: String?
   
   required init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
-    self.code = try? container.decode(Int.self, forKey: CodingKeys(stringValue: "code"))
-    self.msg = try? container.decode(String.self, forKey: CodingKeys(stringValue: "msg"))
-    self.http_code = try? container.decode(Int.self, forKey: CodingKeys(stringValue: "http_code"))
+    self.id = try? container.decode(String.self, forKey: CodingKeys(stringValue: "id"))
   }
 }
 
@@ -79,17 +74,23 @@ class GeofencesHelper: NSObject {
       let body = extraData?["body"]
       if(url != nil){
         self.dataRequest(with: url!, headers: headers as? [String: Any?], body: body as? [String: Any?], objectType: ResponseModel.self, completion: {result in
-//          geofenceManager.sendEvent("onStopShiftByServer", body: [GeofencesHelper.STOP_SHIFT_KEY: true])
-//          geofenceManager.stopMonitoring { data in
-//            
-//          } reject: { code, message, error in
-//            
-//          }          
-          print("Response result: \(result)")
+          switch result {
+            case .success(let success):
+              print("Response success", success.id)
+            case .failure(let error):
+              print("Response error", error.localizedDescription)
+          }
+          //          geofenceManager.sendEvent("onStopShiftByServer", body: [GeofencesHelper.STOP_SHIFT_KEY: true])
+          //          geofenceManager.stopMonitoring { data in
+          //
+          //          } reject: { code, message, error in
+          //
+          //  
         })
       }
     }
   }
+  
   
   func dataRequest<T: Decodable>(with url: String, headers: [String: Any?]?, body: [String: Any?]?, objectType: T.Type, completion: @escaping (Result<T>) -> Void) {
     let dataURL = URL(string: url)!
@@ -100,8 +101,9 @@ class GeofencesHelper: NSObject {
     })
     let jsonData = try? JSONSerialization.data(withJSONObject: body)
     if(jsonData != nil){
-      request.httpBody = jsonData
+       request.httpBody = jsonData
     }
+    request.httpMethod = "POST"
     print("Request: \(request)")
     
     let task = session.dataTask(with: request, completionHandler: { data, response, error in
@@ -114,6 +116,10 @@ class GeofencesHelper: NSObject {
         return
       }
       do {
+        let responseJSON = try? JSONSerialization.jsonObject(with: data, options: [])
+         if let responseJSON = responseJSON as? [String: Any] {
+             print("Response json", responseJSON)
+         }
         let decodedObject = try JSONDecoder().decode(objectType.self, from: data)
         completion(Result.success(decodedObject))
       } catch let error {

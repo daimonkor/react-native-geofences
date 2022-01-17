@@ -542,7 +542,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         }
         (UIApplication.shared.delegate as? GeofenceDelegate)?.geofenceEvent(["GEOFENCES_LIST_KEY": geofenceModel.convertToDictonary(), "TRANSITION_TYPE_KEY": transaction.rawValue], geofenceManager: self)
         if(notification != nil && notification?.message != nil && !(notification?.message?.isEmpty)!){
-            let body = "\(transaction.rawValue) " + (notification?.message)!
+            let body = (notification?.message)!
             let notificationContent = UNMutableNotificationContent()
             notificationContent.body = body
             notificationContent.sound = .default
