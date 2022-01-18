@@ -12,28 +12,27 @@ class GeofenceModel: Codable{
         self.id = id
         self.typeTransactions = typeTransactions
     }
-    
-    static func decodeMap<T: CodingKey>(parentContainer: inout KeyedDecodingContainer<T>, keyedBy: KeyedDecodingContainer<T>.Key.Type,  forKey: KeyedDecodingContainer<T>.Key) throws -> [String: Any?] {
-        var mapContainer = try parentContainer.nestedContainer(keyedBy: keyedBy, forKey: forKey)
+   
+    static func decodeDynamicContainer<T: CodingKey>(parentContainer: KeyedDecodingContainer<T>, keyedBy: KeyedDecodingContainer<T>.Key.Type) throws -> [String: Any?] {
         var extraData: [String: Any?] = [:]
-        try mapContainer.allKeys.forEach { extraCodingKey in
-            if let value = try? mapContainer.decode(String.self, forKey: extraCodingKey) {
+        try parentContainer.allKeys.forEach { extraCodingKey in
+            if let value = try? parentContainer.decode(String.self, forKey: extraCodingKey) {
                 extraData[extraCodingKey.stringValue] = value
-            } else if let value = try? mapContainer.decode(Bool.self, forKey: extraCodingKey)     {
+            } else if let value = try? parentContainer.decode(Bool.self, forKey: extraCodingKey)     {
                 extraData[extraCodingKey.stringValue] = value
-            }   else if let value = try? mapContainer.decode(Int.self, forKey: extraCodingKey)      {
+            }   else if let value = try? parentContainer.decode(Int.self, forKey: extraCodingKey)      {
                 extraData[extraCodingKey.stringValue] = value
-            }   else if let value = try? mapContainer.decode(Double.self, forKey: extraCodingKey)     {
+            }   else if let value = try? parentContainer.decode(Double.self, forKey: extraCodingKey)     {
                 extraData[extraCodingKey.stringValue] = value
-            }  else if let value = try? mapContainer.decode(Float.self, forKey: extraCodingKey)      {
+            }  else if let value = try? parentContainer.decode(Float.self, forKey: extraCodingKey)      {
                 extraData[extraCodingKey.stringValue] = value
             } else {
-                extraData[extraCodingKey.stringValue] = try self.decodeMap(parentContainer: &mapContainer, keyedBy: keyedBy, forKey: extraCodingKey)
+                extraData[extraCodingKey.stringValue] = try self.decodeDynamicContainer(parentContainer: parentContainer.nestedContainer(keyedBy: keyedBy, forKey: extraCodingKey), keyedBy: keyedBy)
             }
         }
         return extraData
     }
-    
+
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeysImpl.self)
         self.position = try container.decode(Coordinate.self, forKey: CodingKeysImpl(stringValue: "position"))
@@ -46,23 +45,8 @@ class GeofenceModel: Codable{
             let notification = try typeTransactionContainer.decode(NotificationDataModel.self, forKey: CodingKeysImpl(stringValue: "notification"))
             var extraDataContainer = try? typeTransactionContainer.nestedContainer(keyedBy: CodingKeysImpl.self, forKey: CodingKeysImpl(stringValue: "extraData"))
             var extraData: [String: Any?] = [:]
-            extraDataContainer?.allKeys.forEach { extraCodingKey in
-                if let value = try? extraDataContainer?.decode(String.self, forKey: extraCodingKey) {
-                    extraData[extraCodingKey.stringValue] = value
-                } else if let value = try? extraDataContainer?.decode(Bool.self, forKey: extraCodingKey)     {
-                    extraData[extraCodingKey.stringValue] = value
-                }   else if let value = try? extraDataContainer?.decode(Int.self, forKey: extraCodingKey)      {
-                    extraData[extraCodingKey.stringValue] = value
-                }   else if let value = try? extraDataContainer?.decode(Double.self, forKey: extraCodingKey)     {
-                    extraData[extraCodingKey.stringValue] = value
-                }  else if let value = try? extraDataContainer?.decode(Float.self, forKey: extraCodingKey)      {
-                    extraData[extraCodingKey.stringValue] = value
-                } else {
-                    let data = try? GeofenceModel.decodeMap(parentContainer: &extraDataContainer!, keyedBy: CodingKeysImpl.self, forKey: extraCodingKey)
-                    if(data != nil){
-                        extraData[extraCodingKey.stringValue] = data
-                    }
-                }
+            if(extraDataContainer != nil){
+                extraData = (try? GeofenceModel.decodeDynamicContainer(parentContainer: extraDataContainer!, keyedBy: CodingKeysImpl.self)) ?? [:]
             }
             self.typeTransactions[TypeTransactions(rawValue: Int(codingKey.stringValue)!)!] = (notification, extraData)
         }
