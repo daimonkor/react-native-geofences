@@ -23,7 +23,9 @@ class GeofenceMonitoringStatus{
     
     func addStartGeofenceCounter(){
         self.startedGeofencesCount += 1
-        self.isStartedMonitoring = true
+        if(self.isAllStartedGeofencesMonitoring()){
+            self.isStartedMonitoring = true
+        }
     }
     
     func stop(){

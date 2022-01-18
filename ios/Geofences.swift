@@ -16,7 +16,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
     static let GEOFENCES_MISSING_ERROR_CODE = 10
     static let DEVICE_IS_NOT_SUPPORTED_GEOFENCES_ERROR_CODE = 11
     static let UNKNOWN_ERROR_CODE = -1
-        
+    
     private override init() {
         super.init()
         self.loadCache()
@@ -464,7 +464,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         didEnterRegion region: CLRegion
     ) {
         if region is CLCircularRegion {
-            checkGeofenceEvent(coordinate: (region as! CLCircularRegion).center, typeTransaction: TypeTransactions.ENTER)
+            self.checkGeofenceEvent(coordinate: region as! CLCircularRegion , typeTransaction: TypeTransactions.ENTER)
         }
     }
     
@@ -473,7 +473,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         didExitRegion region: CLRegion
     ) {
         if region is CLCircularRegion {
-            checkGeofenceEvent(coordinate: (region as! CLCircularRegion).center, typeTransaction: TypeTransactions.EXIT)
+            self.checkGeofenceEvent(coordinate: (region as! CLCircularRegion), typeTransaction: TypeTransactions.EXIT)
         }
     }
     
@@ -492,10 +492,21 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
     
     func locationManager(_ manager: CLLocationManager, didStartMonitoringFor region: CLRegion){
         print("Monitoring started for region with identifier: \(region.identifier)")
+        let wasStartedMonitoring = self.geofenceMonitoringStatus.isStartedMonitoring
         self.geofenceMonitoringStatus.addStartGeofenceCounter()
         print("Counters \(self.geofenceMonitoringStatus.neededStartGeofencesCount), \(self.geofenceMonitoringStatus.startedGeofencesCount)")
-        if(self.geofenceMonitoringStatus.isAllStartedGeofencesMonitoring()){
+        if(self.geofenceMonitoringStatus.isAllStartedGeofencesMonitoring() && !wasStartedMonitoring){
             self.geofenceMonitoringStatus.callback?(nil)
+        }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if(locations.first?.coordinate != nil && !self.locationManager.monitoredRegions.isEmpty){
+            self.locationManager.stopUpdatingLocation()
+            locationManager.delegate = nil;
+            print("Request location for geofence monitoring success: \(String(describing: locations.first))")
+            self.checkGeofenceEvent(coordinate: CLCircularRegion(center: locations.first!.coordinate, radius: 1, identifier: "unknown") , isInitial: true)
+            self.locationManager.delegate = self;
         }
     }
     
@@ -503,42 +514,35 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         print("Location Manager failed with the following error: \(error)")
     }
     
-    private func checkGeofenceEvent(coordinate: CLLocationCoordinate2D, typeTransaction: TypeTransactions = TypeTransactions.UNKNOWN, isInitial: Bool = false){
-        DispatchQueue.global(qos: .default).async {
+    private func checkGeofenceEvent(coordinate: CLCircularRegion, typeTransaction: TypeTransactions = TypeTransactions.UNKNOWN, isInitial: Bool = false){
+        DispatchQueue.main.sync {
             for geofencesHolder in self.mGeofencesHolderList {
                 if(geofencesHolder.initialTriggers.count > 0 && isInitial || !isInitial){
-                    print("Contains initial triggers: \(geofencesHolder.initialTriggers.count)")
                     for geofenceModel in geofencesHolder.geofenceModels{
                         let region = geofenceModel.convertToCLCircularRegion() as! CLCircularRegion
                         if(isInitial){
-                            sleep(2)
-                            DispatchQueue.main.async {
-                                self.handleEvent(for: geofenceModel, typeTransaction: region.contains(coordinate) ? TypeTransactions.ENTER : TypeTransactions.EXIT)
+                            print("Contains initial triggers: \(geofencesHolder.initialTriggers.count)")
+                            print("Check init: \(coordinate.center) \(region.center) \(region.contains(coordinate.center)) \(region.contains(region.center))")
+                            let inRegion = region.contains(coordinate.center)
+                            if(geofencesHolder.initialTriggers.contains(InitialTriggers.ENTER) == true && inRegion){
+                                self.handleEvent(for: geofenceModel, typeTransaction: TypeTransactions.ENTER, true)
+                            }else if(geofencesHolder.initialTriggers.contains(InitialTriggers.EXIT) == true && !inRegion){
+                                self.handleEvent(for: geofenceModel, typeTransaction: TypeTransactions.EXIT, true)
                             }
-                        } else if(region.contains(coordinate)){
-                            sleep(2)
-                            DispatchQueue.main.async {
-                                self.handleEvent(for: geofenceModel, typeTransaction: typeTransaction)
-                            }
+                        } else if(region == coordinate){
+                            self.handleEvent(for: geofenceModel, typeTransaction: typeTransaction)
                         }
                     }
                 }
             }
-        }
+        }        
     }
     
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if(locations.first?.coordinate != nil){
-            print("Request location for geofence monitoring success: \(String(describing: locations.first))")
-            self.checkGeofenceEvent(coordinate: locations.first!.coordinate, isInitial: true)
-        }
-    }
-    
-    private func handleEvent(for geofenceModel: GeofenceModel, typeTransaction transaction: TypeTransactions) {
+    private func handleEvent(for geofenceModel: GeofenceModel, typeTransaction transaction: TypeTransactions, _ isInit: Bool = false) {
         let notification = geofenceModel.typeTransactions[transaction]?.0 as NotificationDataModel?
-        print("Geofence event: \(geofenceModel.convertToCLCircularRegion())")
+        print("Geofence event: \(geofenceModel.convertToCLCircularRegion()) \(self.index)")
         if(self.hasListeners){
-            self.sendEvent(withName: "onGeofenceEvent", body: ["GEOFENCES_LIST_KEY": geofenceModel.convertToDictonary(), "TRANSITION_TYPE_KEY": transaction.rawValue])
+            self.sendEvent(withName: "onGeofenceEvent", body: ["GEOFENCES_LIST_KEY": geofenceModel.convertToDictonary(), "TRANSITION_TYPE_KEY": transaction.rawValue, "INIT": isInit])
         }
         (UIApplication.shared.delegate as? GeofenceDelegate)?.geofenceEvent(["GEOFENCES_LIST_KEY": geofenceModel.convertToDictonary(), "TRANSITION_TYPE_KEY": transaction.rawValue], geofenceManager: self)
         if(notification != nil && notification?.message != nil && !(notification?.message?.isEmpty)!){
@@ -548,16 +552,16 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
             notificationContent.sound = .default
             notificationContent.badge = UIApplication.shared.applicationIconBadgeNumber + 1 as NSNumber
             notificationContent.userInfo = ["actionUrl" : notification?.actionUri]
-            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false )
             let request = UNNotificationRequest(
                 identifier: geofenceModel.id + generateId(),
                 content: notificationContent,
-                trigger: trigger)
+                trigger: nil)
             UNUserNotificationCenter.current().add(request) { error in
                 if let error = error {
                     print("Geofence handle event error: \(error)")
                 }
             }
+            sleep(1)
         }
     }
 }

@@ -66,32 +66,33 @@ class GeofencesHelper: NSObject {
   
   @objc
   public func request(geofenceModel: NSDictionary, geofenceManager: GeofenceManagment ){
-    let typeTransactions = (geofenceModel["GEOFENCES_LIST_KEY"] as? [String: Any?])?["typeTransactions"] as? [String: Any?]
-    if(geofenceModel["TRANSITION_TYPE_KEY"] != nil){
-      let extraData = (typeTransactions?[String(geofenceModel["TRANSITION_TYPE_KEY"] as! Int)] as? [String: Any?])?["extraData"] as? [String: Any?]
-      let url = extraData?["url"] as? String
-      let headers = extraData?["headers"]
-      let body = extraData?["body"]
-      if(url != nil){
-        self.dataRequest(with: url!, headers: headers as? [String: Any?], body: body as? [String: Any?], objectType: ResponseModel.self, completion: {result in
-          switch result {
-            case .success(let success):
-              print("Response success", success.id)
-            case .failure(let error):
-              print("Response error", error.localizedDescription)
-          }
-          //          geofenceManager.sendEvent("onStopShiftByServer", body: [GeofencesHelper.STOP_SHIFT_KEY: true])
-          //          geofenceManager.stopMonitoring { data in
-          //
-          //          } reject: { code, message, error in
-          //
-          //  
-        })
+    DispatchQueue.main.async {
+      let typeTransactions = (geofenceModel["GEOFENCES_LIST_KEY"] as? [String: Any?])?["typeTransactions"] as? [String: Any?]
+      if(geofenceModel["TRANSITION_TYPE_KEY"] != nil){
+        let extraData = (typeTransactions?[String(geofenceModel["TRANSITION_TYPE_KEY"] as! Int)] as? [String: Any?])?["extraData"] as? [String: Any?]
+        let url = extraData?["url"] as? String
+        let headers = extraData?["headers"]
+        let body = extraData?["body"]
+        if(url != nil){
+          self.dataRequest(with: url!, headers: headers as? [String: Any?], body: body as? [String: Any?], objectType: ResponseModel.self, completion: {result in
+            switch result {
+              case .success(let success):
+                print("Response success", success.id)
+              case .failure(let error):
+                print("Response error", error.localizedDescription)
+            }
+            //          geofenceManager.sendEvent("onStopShiftByServer", body: [GeofencesHelper.STOP_SHIFT_KEY: true])
+            //          geofenceManager.stopMonitoring { data in
+            //
+            //          } reject: { code, message, error in
+            //
+            //
+          })
+        }
       }
     }
   }
-  
-  
+    
   func dataRequest<T: Decodable>(with url: String, headers: [String: Any?]?, body: [String: Any?]?, objectType: T.Type, completion: @escaping (Result<T>) -> Void) {
     let dataURL = URL(string: url)!
     let session = URLSession.shared
