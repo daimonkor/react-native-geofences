@@ -45,9 +45,7 @@
 	<string>GeofencesExample requires constant access to your phone’s location to notify you when you enter or leave a geofence.</string>
 	<key>UIBackgroundModes</key>
 	<array>
-		<string>fetch</string>
 		<string>location</string>
-		<string>processing</string>
 		<string>remote-notification</string>
 	</array>
 	<key>UILaunchStoryboardName</key>

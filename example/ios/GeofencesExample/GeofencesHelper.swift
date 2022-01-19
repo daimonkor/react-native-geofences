@@ -77,9 +77,9 @@ class GeofencesHelper: NSObject {
           self.dataRequest(with: url!, headers: headers as? [String: Any?], body: body as? [String: Any?], objectType: ResponseModel.self, completion: {result in
             switch result {
               case .success(let success):
-                print("Response success", success.id)
+              NSLog("Response success: \(String(describing: success.id))")
               case .failure(let error):
-                print("Response error", error.localizedDescription)
+              NSLog("Response error %@",  error.localizedDescription)
             }
             //          geofenceManager.sendEvent("onStopShiftByServer", body: [GeofencesHelper.STOP_SHIFT_KEY: true])
             //          geofenceManager.stopMonitoring { data in
@@ -105,7 +105,7 @@ class GeofencesHelper: NSObject {
        request.httpBody = jsonData
     }
     request.httpMethod = "POST"
-    print("Request: \(request)")
+    print("Request: \(request.url) \(request.allHTTPHeaderFields) \(request.httpMethod) \(body)")
     
     let task = session.dataTask(with: request, completionHandler: { data, response, error in
       guard error == nil else {
@@ -119,7 +119,7 @@ class GeofencesHelper: NSObject {
       do {
         let responseJSON = try? JSONSerialization.jsonObject(with: data, options: [])
          if let responseJSON = responseJSON as? [String: Any] {
-             print("Response json", responseJSON)
+             NSLog("Response json: \(responseJSON)")
          }
         let decodedObject = try JSONDecoder().decode(objectType.self, from: data)
         completion(Result.success(decodedObject))

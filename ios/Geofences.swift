@@ -27,7 +27,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         locationManager.allowsBackgroundLocationUpdates = true
         locationManager.pausesLocationUpdatesAutomatically = false
         locationManager.delegate = self
- 
+        
     }
     
     func addCustomEvent(_ eventName: String!) {
@@ -69,27 +69,27 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
                 try {
                     self.geofenceMonitoringStatus.callback = { error in
                         if(error != nil){
-                            print("Failure start geofences monitoring: \(String(describing: error))")
+                            NSLog("Failure start geofences monitoring: \(String(describing: error))")
                             let (code, message, error) = (error as? ErrorImpl)?.convertToTuple() ?? (Geofences.UNKNOWN_ERROR_CODE, "Unknown error", nil)
                             reject(String(code ?? 0), message, error)
                         }else{
-                            print("Start current geofences monitoring successfully")
+                            NSLog("Start current geofences monitoring successfully")
                             self.saveCache()
                             resolve(true)
                         }
                         self.geofenceMonitoringStatus.callback = nil
                     }
                     if (self.mGeofencesHolderList.isEmpty) {
-                        print("Failure create geofences and start current geofences monitoring: please add geofences")
+                        NSLog("Failure create geofences and start current geofences monitoring: please add geofences")
                         throw ErrorImpl.error(code: Geofences.GEOFENCES_MISSING_ERROR_CODE, message: "Start monitoring error: missing geofences")
                     }
                     let countGeofences = self.mGeofencesHolderList.map{ holder in
                         holder.geofenceModels
                     }.joined().count
-                    print("Count geofences \(countGeofences)")
+                    NSLog("Count geofences \(countGeofences)")
                     self.geofenceMonitoringStatus.start(neededStartGeofencesCount: countGeofences)
                     if !CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self) {
-                        print(
+                        NSLog(
                             "Geofencing is not supported on this device!")
                         throw ErrorImpl.error(code: Geofences.DEVICE_IS_NOT_SUPPORTED_GEOFENCES_ERROR_CODE, message: "Geofencing is not supported on this device!")
                     }
@@ -118,11 +118,11 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         let isStartedMonitoring = self.geofenceMonitoringStatus.isStartedMonitoring
         self.geofenceMonitoringStatus.callback = { error in
             if(error != nil){
-                print("Failure stop geofences monitoring: \(String(describing: error))")
+                NSLog("Failure stop geofences monitoring: \(String(describing: error))")
                 let (code, message, error) = (error as? ErrorImpl)?.convertToTuple() ?? (Geofences.UNKNOWN_ERROR_CODE, "Unknown error", nil)
                 reject(String(code ?? 0), message, error)
             }else{
-                print("Stop geofences monitoring successfully")
+                NSLog("Stop geofences monitoring successfully")
                 self.saveGeofencesDataToCache(geofencesHolderList: self.mGeofencesHolderList, isStartedMonitoring: false)
                 resolve(isStartedMonitoring)
                 self.geofenceMonitoringStatus.isStartedMonitoring = false
@@ -259,7 +259,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
     
     @objc(addGeofences:resolve:reject:)
     func addGeofences(_ geofenceHolder: NSDictionary, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
-        print(geofenceHolder)
+        NSLog("Add geofences: \(geofenceHolder)")
         let geofencesList = geofenceHolder["geofences"] as? Array<Any>
         let initialTriggers: Array<InitialTriggers>? = (geofenceHolder["initialTriggers"] as? Array<Int>)?.map{ element in
             InitialTriggers(rawValue: element as Int)!
@@ -320,7 +320,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         let result = self.mGeofencesHolderList.map { holder in
             holder.geofenceModels
         }.joined().first(where: {item in item.id == id}) != nil
-        print("Is exists Geofence by id: \(id), \(result)")
+        NSLog("Is exists Geofence by id: \(id), \(result)")
         resolve(result)
     }
     
@@ -333,7 +333,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         }.filter { geofenceModel in
             geofenceModel != nil
         }.count > 0
-        print("Is exists Geofence by list ids: \(ids), \(result), \(self.mGeofencesHolderList)")
+        NSLog("Is exists Geofence by list ids: \(ids), \(result), \(self.mGeofencesHolderList)")
         resolve(result)
     }
     
@@ -342,7 +342,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         let result = self.mGeofencesHolderList.map { holder in
             holder.geofenceModels
         }.joined().first(where: {item in item.position == Coordinate(longitude: coordinate["longitude"] as! Double, latitude: coordinate["latitude"] as! Double, radius: coordinate["radius"] as! Int)}) != nil
-        print("Is exists Geofence by coordinate: \(coordinate), \(result)")
+        NSLog("Is exists Geofence by coordinate: \(coordinate), \(result)")
         resolve(result)
     }
     
@@ -355,7 +355,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         }.filter { geofenceModel in
             geofenceModel != nil
         }.count > 0
-        print("Is exists Geofence by list coordinates: \(coordinates), \(result), \(self.mGeofencesHolderList)")
+        NSLog("Is exists Geofence by list coordinates: \(coordinates), \(result), \(self.mGeofencesHolderList)")
         resolve(result)
     }
     
@@ -363,11 +363,11 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
     func removeGeofences(filter: NSArray, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock)  -> Void  {
         self.geofenceMonitoringStatus.callback = { error in
             if(error != nil){
-                print("Failure remove geofences and stop current geofences monitoring: \(String(describing: error))")
+                NSLog("Failure remove geofences and stop current geofences monitoring: \(String(describing: error))")
                 let (code, message, error) = (error as? ErrorImpl)?.convertToTuple() ?? (Geofences.UNKNOWN_ERROR_CODE, "Unknown error", nil)
                 reject(String(code ?? 0), message, error)
             }else{
-                print("Remove geofences and stop current geofences monitoring successfully")
+                NSLog("Remove geofences and stop current geofences monitoring successfully")
                 self.saveCache()
                 resolve(filter)
             }
@@ -485,17 +485,17 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
     ) {
         self.geofenceMonitoringStatus.callback?(error)
         guard let region = region else {
-            print("Monitoring failed for unknown region")
+            NSLog("Monitoring failed for unknown region")
             return
         }
-        print("Monitoring failed for region with identifier: \(region.identifier), \(error.localizedDescription)")
+        NSLog("Monitoring failed for region with identifier: \(region.identifier), \(error.localizedDescription)")
     }
     
     func locationManager(_ manager: CLLocationManager, didStartMonitoringFor region: CLRegion){
-        print("Monitoring started for region with identifier: \(region.identifier)")
+        NSLog("Monitoring started for region with identifier: \(region.identifier)")
         let wasStartedMonitoring = self.geofenceMonitoringStatus.isStartedMonitoring
         self.geofenceMonitoringStatus.addStartGeofenceCounter()
-        print("Counters \(self.geofenceMonitoringStatus.neededStartGeofencesCount), \(self.geofenceMonitoringStatus.startedGeofencesCount)")
+        NSLog("Counters \(self.geofenceMonitoringStatus.neededStartGeofencesCount), \(self.geofenceMonitoringStatus.startedGeofencesCount)")
         if(self.geofenceMonitoringStatus.isAllStartedGeofencesMonitoring() && !wasStartedMonitoring){
             self.geofenceMonitoringStatus.callback?(nil)
         }
@@ -505,14 +505,14 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         if(locations.first?.coordinate != nil && !self.locationManager.monitoredRegions.isEmpty){
             self.locationManager.stopUpdatingLocation()
             locationManager.delegate = nil;
-            print("Request location for geofence monitoring success: \(String(describing: locations.first))")
+            NSLog("Request location for geofence monitoring success: \(String(describing: locations.first))")
             self.checkGeofenceEvent(coordinate: CLCircularRegion(center: locations.first!.coordinate, radius: 1, identifier: "unknown") , isInitial: true)
             self.locationManager.delegate = self;
         }
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        print("Location Manager failed with the following error: \(error)")
+        NSLog("Location Manager failed with the following error: \(error)")
     }
     
     private func checkGeofenceEvent(coordinate: CLCircularRegion, typeTransaction: TypeTransactions = TypeTransactions.UNKNOWN, isInitial: Bool = false){
@@ -522,8 +522,8 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
                     for geofenceModel in geofencesHolder.geofenceModels{
                         let region = geofenceModel.convertToCLCircularRegion() as! CLCircularRegion
                         if(isInitial){
-                            print("Contains initial triggers: \(geofencesHolder.initialTriggers.count)")
-                            print("Check init: \(coordinate.center) \(region.center) \(region.contains(coordinate.center)) \(region.contains(region.center))")
+                            NSLog("Contains initial triggers: \(geofencesHolder.initialTriggers.count)")
+                            NSLog("Check init: \(coordinate.center) \(region.center) \(region.contains(coordinate.center)) \(region.contains(region.center))")
                             let inRegion = region.contains(coordinate.center)
                             if(geofencesHolder.initialTriggers.contains(InitialTriggers.ENTER) == true && inRegion){
                                 self.handleEvent(for: geofenceModel, typeTransaction: TypeTransactions.ENTER, true)
@@ -536,12 +536,12 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
                     }
                 }
             }
-        }        
+        }
     }
     
     private func handleEvent(for geofenceModel: GeofenceModel, typeTransaction transaction: TypeTransactions, _ isInit: Bool = false) {
         let notification = geofenceModel.typeTransactions[transaction]?.0 as NotificationDataModel?
-        print("Geofence event: \(geofenceModel.convertToCLCircularRegion()) \(self.index)")
+        NSLog("Geofence event: \(geofenceModel.convertToCLCircularRegion()) \(self.index)")
         if(self.hasListeners){
             self.sendEvent(withName: "onGeofenceEvent", body: ["GEOFENCES_LIST_KEY": geofenceModel.convertToDictonary(), "TRANSITION_TYPE_KEY": transaction.rawValue, "INIT": isInit])
         }
@@ -559,7 +559,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
                 trigger: nil)
             UNUserNotificationCenter.current().add(request) { error in
                 if let error = error {
-                    print("Geofence handle event error: \(error)")
+                    NSLog("Geofence handle event error: \(error)")
                 }
             }
             sleep(1)
@@ -586,10 +586,10 @@ extension Geofences {
     ) {
         do {
             let data = try JSONEncoder().encode(Cache(geofencesHolderList: self.mGeofencesHolderList, isStartedMonitoring: self.geofenceMonitoringStatus.isStartedMonitoring))
-            print("Save cache: \(String(data: data, encoding: .utf8)!)")
+            NSLog("Save cache: \(String(data: data, encoding: .utf8)!)")
             UserDefaults.standard.set(data, forKey: Geofences.CACHE_FILE_NAME)
         } catch {
-            print("Error encoding cache")
+            NSLog("Error encoding cache")
         }
     }
     
