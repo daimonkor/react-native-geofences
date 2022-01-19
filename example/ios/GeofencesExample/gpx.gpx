@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<gpx version="1.1" creator="Xcode">
+    <wpt lat="40.7415" lon="-74.0034">
+        <name>Moscone</name>
+    </wpt>
+    <wpt lat="40.7420" lon="-74.0034">
+        <name>Cupertino</name>
+    </wpt>
+    <wpt lat="40.7425" lon="-74.0034">
+        <name>Cupertino1</name>
+    </wpt>
+    <wpt lat="40.7430" lon="-74.0034">
+        <name>Cupertino2</name>
+    </wpt>
+    <wpt lat="40.7435" lon="-74.0034">
+        <name>Cupertino2</name>
+    </wpt>
+    <wpt lat="40.7440" lon="-74.0034">
+        <name>Cupertino2</name>
+    </wpt>
+   <wpt lat="40.7445" lon="-74.0034">
+        <name>Cupertino2</name>
+    </wpt>
+  <wpt lat="40.7450" lon="-74.0034">
+        <name>Cupertino2</name>
+    </wpt>
+  <wpt lat="40.7455" lon="-74.0034">
+        <name>Cupertino2</name>
+    </wpt>
+  <wpt lat="40.7456" lon="-74.0034">
+        <name>Cupertino2</name>
+    </wpt>
+</gpx>
