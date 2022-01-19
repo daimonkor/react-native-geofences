@@ -19,14 +19,15 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
     
     private override init() {
         super.init()
+        DispatchQueue.main.sync {
+            (UIApplication.shared.delegate as? GeofenceDelegate)?.onInitGeofencesModule(self)
+        }
         self.loadCache()
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.allowsBackgroundLocationUpdates = true
         locationManager.pausesLocationUpdatesAutomatically = false
         locationManager.delegate = self
-        DispatchQueue.main.async {
-            (UIApplication.shared.delegate as? GeofenceDelegate)?.onInitGeofencesModule(self)
-        }
+ 
     }
     
     func addCustomEvent(_ eventName: String!) {

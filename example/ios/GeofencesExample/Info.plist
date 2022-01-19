@@ -37,6 +37,10 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>GeofencesExample requires constant access to your phone’s location to notify you when you enter or leave a geofence.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>GeofencesExample requires constant access to your phone’s location to notify you when you enter or leave a geofence.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Geotify requires constant access to your phone’s location to notify you when you enter or leave a geofence.</string>
 	<key>UIBackgroundModes</key>
@@ -60,9 +64,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>GeofencesExample requires constant access to your phone’s location to notify you when you enter or leave a geofence.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>GeofencesExample requires constant access to your phone’s location to notify you when you enter or leave a geofence.</string>
 </dict>
 </plist>
