@@ -8,9 +8,6 @@
       location = "group:GeofencesExample/gpx.gpx">
    </FileRef>
    <FileRef
-      location = "group:GeofencesExample/gpx.gpx">
-   </FileRef>
-   <FileRef
       location = "group:GeofencesExample.xcodeproj">
    </FileRef>
    <FileRef
