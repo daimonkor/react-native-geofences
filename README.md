@@ -333,6 +333,14 @@ implement *GeofenceDelegate*
 //#import "GeofencesExample-Swift.h"
 .....
 
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+ .........
+  UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+  center.delegate = self;
+  return YES;
+}
+
 - (void) geofenceEvent:(NSDictionary *) geofenceModel geofenceManager: (id<GeofenceManagment>) geofenceManager  {
   /***
    * geofenceManager contains interface to control geofence monitong
