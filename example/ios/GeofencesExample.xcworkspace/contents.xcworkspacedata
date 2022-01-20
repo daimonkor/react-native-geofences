@@ -2,6 +2,12 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:GeofencesExample/gpx_start.gpx">
+   </FileRef>
+   <FileRef
+      location = "group:GeofencesExample/gpx.gpx">
+   </FileRef>
+   <FileRef
       location = "group:GeofencesExample/gpx.gpx">
    </FileRef>
    <FileRef
