@@ -392,7 +392,7 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         }
         self.geofenceMonitoringStatus.stop()
     }
-    
+      
     @objc(isStartedMonitoring:reject:)
     func isStartedMonitoring(_ resolve:  RCTPromiseResolveBlock, reject:  RCTPromiseRejectBlock)  -> Void   {
         resolve(self.geofenceMonitoringStatus.isStartedMonitoring)
@@ -441,7 +441,6 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
          @available(iOS 8.0, *)
          case authorizedWhenInUse = 4
          */
-        
         let currentStatus = CLLocationManager.authorizationStatus()
         if(currentStatus == .authorizedAlways){
             callback?(currentStatus)
@@ -453,7 +452,15 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
                 self.requestLocationAuthorizationCallback = nil
             }
         }
-        self.locationManager.requestAlwaysAuthorization()
+        let requestedBefore = self.isFlaggedAsRequested(handlerUniqueId: self.handlerUniqueId());
+        if (currentStatus != .notDetermined && (currentStatus == .authorizedWhenInUse && requestedBefore)) {
+            callback?(currentStatus)
+        }else if(!requestedBefore){
+            self.locationManager.requestAlwaysAuthorization()
+            self.flagAsRequested (handlerUniqueId: self.handlerUniqueId());
+        } else{
+            callback?(currentStatus)
+        }
     }
     
     private func generateId() -> String {
@@ -569,6 +576,8 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
 
 extension Geofences {
     static let CACHE_FILE_NAME = "GEOFENCES_CACHE"
+    static let PERMISSION_SETTINGS = "PERMISSION_SETTINGS"
+    static let SETTING_KEY = "Permissions:Requested";
     
     func saveCache() {
         saveGeofencesDataToCache(geofencesHolderList: self.mGeofencesHolderList, isStartedMonitoring: self.geofenceMonitoringStatus.isStartedMonitoring)
@@ -599,5 +608,17 @@ extension Geofences {
             return savedGeotifications
         }
         return Cache(geofencesHolderList: [], isStartedMonitoring: false)
+    }
+    
+    func handlerUniqueId() -> String {
+      return "ios.permission.LOCATION_ALWAYS";
+    }
+    
+    func isFlaggedAsRequested(handlerUniqueId: String) -> Bool{
+        return  UserDefaults.standard.string(forKey: Geofences.PERMISSION_SETTINGS) != nil
+    }
+    
+    func flagAsRequested(handlerUniqueId: String){
+        UserDefaults.standard.set(handlerUniqueId, forKey: Geofences.PERMISSION_SETTINGS)
     }
 }
