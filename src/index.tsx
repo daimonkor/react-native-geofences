@@ -9,24 +9,19 @@ const LINKING_ERROR =
 type AndroidInitialTriggersType = 1 | 2 | 4;
 type AndroidTypeTransactionsType = 1 | 2 | 4;
 
+type IOSInitialTriggersType = 1 | 2 | 4;
+type IOSTypeTransactionsType = 1 | 2 | 4;
+
 export enum InitialTriggers {
-  ENTER = (Platform.OS === 'android' ? 1 : 1) as
-    | AndroidInitialTriggersType
-    | number,
-  EXIT = Platform.OS === 'android' ? 2 : 2,
-  DWELL = Platform.OS === 'android' ? 4 : 4,
+  ENTER = 1 as AndroidInitialTriggersType | IOSInitialTriggersType,
+  EXIT = 2 as AndroidInitialTriggersType | IOSInitialTriggersType,
+  DWELL = 4 as AndroidInitialTriggersType | IOSInitialTriggersType,
 }
 
 export enum TypeTransactions {
-  ENTER = (Platform.OS === 'android' ? 1 : 1) as
-    | AndroidTypeTransactionsType
-    | number,
-  EXIT = (Platform.OS === 'android' ? 2 : 2) as
-    | AndroidTypeTransactionsType
-    | number,
-  DWELL = (Platform.OS === 'android' ? 4 : 4) as
-    | AndroidTypeTransactionsType
-    | number,
+  ENTER = 1 as AndroidTypeTransactionsType | IOSTypeTransactionsType,
+  EXIT = 2 as AndroidTypeTransactionsType | IOSTypeTransactionsType,
+  DWELL = 4 as AndroidTypeTransactionsType | IOSTypeTransactionsType,
 }
 
 const Geofences = NativeModules.Geofences
@@ -50,7 +45,7 @@ export interface Geofence {
   position: Coordinate;
   name: string;
   typeTransactions: {
-    type: AndroidTypeTransactionsType | number;
+    type: TypeTransactions;
     notification?: NotificationData | null;
     extraData?: Object | null;
   }[];
@@ -58,7 +53,7 @@ export interface Geofence {
 }
 
 export interface GeofenceHolder {
-  initialTriggers?: AndroidInitialTriggersType[] | number[];
+  initialTriggers?: InitialTriggers[];
   geofences: Geofence[];
 }
 
@@ -121,20 +116,24 @@ export function stopMonitoring(): Promise<boolean> {
 export function requestPermissions(
   rationaleDialog: Rationale
 ): Promise<PermissionData> {
-  return Platform.OS === 'android'
-    ? Geofences.requestPermissions(
-        'android.permission.ACCESS_FINE_LOCATION',
-        rationaleDialog
-      ).then((value: PermissionData) => {
-        return Promise.all([
-          Promise.resolve(value),
-          Geofences.requestPermissions(
-            'android.permission.ACCESS_BACKGROUND_LOCATION',
-            rationaleDialog
-          ),
-        ]);
-      })
-    : Geofences.requestPermissions();
+  return (
+    Platform.OS === 'android'
+      ? Geofences.requestPermissions(
+          'android.permission.ACCESS_FINE_LOCATION',
+          rationaleDialog
+        ).then((value: PermissionData) => {
+          return Promise.all([
+            Promise.resolve(value),
+            Geofences.requestPermissions(
+              'android.permission.ACCESS_BACKGROUND_LOCATION',
+              rationaleDialog
+            ),
+          ]);
+        })
+      : Geofences.requestPermissions()
+  ).then((data: any) => {
+    return { result: data } as PermissionData;
+  });
 }
 
 export function permissionsStatus(): Promise<PermissionData> {

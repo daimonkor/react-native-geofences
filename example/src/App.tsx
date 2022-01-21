@@ -229,7 +229,10 @@ export default function App() {
                   cancelLabel: 'Cancel',
                 })
                   .then((result) => {
-                    console.log('Request location permissions', result);
+                    console.log(
+                      'Request location permissions',
+                      JSON.stringify(result)
+                    );
                   })
                   .catch((error) => {
                     console.log(
