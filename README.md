@@ -181,37 +181,43 @@ async function requestLocationPermission() {
 type AndroidInitialTriggersType = 1 | 2 | 4;
 type AndroidTypeTransactionsType = 1 | 2 | 4;
 
+type IOSInitialTriggersType = 1 | 2 | 4;
+type IOSTypeTransactionsType = 1 | 2 | 4;
+
 export enum InitialTriggers {
-  ENTER = (Platform.OS === 'android' ? 1 : 1) as
-    | AndroidInitialTriggersType
-    | number,
-  EXIT = Platform.OS === 'android' ? 2 : 2,
-  DWELL = Platform.OS === 'android' ? 4 : 4,
+  ENTER = 1 as AndroidInitialTriggersType | IOSInitialTriggersType,
+  EXIT = 2 as AndroidInitialTriggersType | IOSInitialTriggersType,
+  DWELL = 4 as AndroidInitialTriggersType | IOSInitialTriggersType,
 }
 
 export enum TypeTransactions {
-  ENTER = (Platform.OS === 'android' ? 1 : 1) as
-    | AndroidTypeTransactionsType
-    | number,
-  EXIT = (Platform.OS === 'android' ? 2 : 2) as
-    | AndroidTypeTransactionsType
-    | number,
-  DWELL = (Platform.OS === 'android' ? 4 : 4) as
-    | AndroidTypeTransactionsType
-    | number,
+  ENTER = 1 as AndroidTypeTransactionsType | IOSTypeTransactionsType,
+  EXIT = 2 as AndroidTypeTransactionsType | IOSTypeTransactionsType,
+  DWELL = 4 as AndroidTypeTransactionsType | IOSTypeTransactionsType,
 }
+
+const Geofences = NativeModules.Geofences
+  ? NativeModules.Geofences
+  : new Proxy(
+    {},
+    {
+      get() {
+        throw new Error(LINKING_ERROR);
+      },
+    }
+  );
 
 export interface Coordinate {
   longitude: number;
   latitude: number;
-  radius: number;
+  radius?: number;
 }
 
 export interface Geofence {
   position: Coordinate;
   name: string;
   typeTransactions: {
-    type: AndroidTypeTransactionsType | number;
+    type: TypeTransactions;
     notification?: NotificationData | null;
     extraData?: Object | null;
   }[];
@@ -219,7 +225,7 @@ export interface Geofence {
 }
 
 export interface GeofenceHolder {
-  initialTriggers?: AndroidInitialTriggersType[] | number[];
+  initialTriggers?: InitialTriggers[];
   geofences: Geofence[];
 }
 
@@ -242,6 +248,33 @@ export type Rationale = {
 export interface NotificationPermissionData {
   settings: NotificationSettings;
   authorizationStatus: Object;
+}
+
+export type NotificationOption =
+  | 'alert'
+  | 'badge'
+  | 'sound'
+  | 'criticalAlert'
+  | 'carPlay'
+  | 'provisional';
+
+export type NotificationSettings = {
+  // properties only available on iOS
+  // unavailable settings will not be included in the response object
+  alert?: boolean;
+  badge?: boolean;
+  sound?: boolean;
+  carPlay?: boolean;
+  criticalAlert?: boolean;
+  provisional?: boolean;
+  lockScreen?: boolean;
+  notificationCenter?: boolean;
+};
+
+export enum IOSErrors {
+  GEOFENCES_MISSING_ERROR_CODE = '10',
+  DEVICE_IS_NOT_SUPPORTED_GEOFENCES_ERROR_CODE = '11',
+  UNKNOWN_ERROR_CODE = '-1',
 }
 
 ```
