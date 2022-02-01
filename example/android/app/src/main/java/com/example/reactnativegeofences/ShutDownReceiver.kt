@@ -14,7 +14,7 @@ class ShutDownReceiver : BroadcastReceiver() {
   @Override
   override fun onReceive(context: Context, intent: Intent) {
     if (Intent.ACTION_SHUTDOWN == intent.action) {
-      Log.e(TAG, "System shutting down");
+      Log.e(TAG, "System shutting down")
       val geofenceHelper = GeofenceHelper(context)
       geofenceHelper.mBootCompleted = false
       geofenceHelper.saveCache()

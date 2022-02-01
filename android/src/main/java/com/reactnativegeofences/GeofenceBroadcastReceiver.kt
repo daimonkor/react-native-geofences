@@ -81,9 +81,9 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             it.requestId
           }.toTypedArray()).toTypedArray()
         data.forEach {
-          it.typeTransactions[TypeTransactions.toValue(geofenceTransition)]?.first?.let {
-            if (it.message?.isNotEmpty() == true) {
-              sendNotification(context, it.message, it.actionUri)
+          it.typeTransactions[TypeTransactions.toValue(geofenceTransition)]?.first?.let { notificationDataModel ->
+            if (notificationDataModel.message?.isNotEmpty() == true) {
+              sendNotification(context, notificationDataModel.message, notificationDataModel.actionUri)
             }
           }
         }

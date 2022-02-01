@@ -30,6 +30,7 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
     return "Geofences"
   }
 
+  @Suppress("UNCHECKED_CAST")
   @ReactMethod
   fun addGeofences(geofences: ReadableMap, promise: Promise) {
     Log.i(
@@ -43,32 +44,32 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
     geofencesHolder.initialTriggers = initialTriggers.map { value ->
       InitialTriggers.values().firstOrNull { it.trigger == value } ?: InitialTriggers.UNKNOWN
     }.toTypedArray()
-    geofences.getArray("geofences")?.toArrayList()?.forEach {
-      it as HashMap<*, *>
+    geofences.getArray("geofences")?.toArrayList()?.forEach { geofence ->
+      geofence as HashMap<*, *>
       val transactionTypes =
         HashMap<TypeTransactions, Pair<NotificationDataModel?, HashMap<String, *>?>>()
-      (it.get("typeTransactions") as ArrayList<*>).toArray().forEach {
+      (geofence["typeTransactions"] as ArrayList<*>).toArray().forEach {
         it as HashMap<*, *>
         transactionTypes[TypeTransactions.values()
           .firstOrNull { value -> value.typeTransaction == (it.get("type") as Double).toInt() }
           ?: TypeTransactions.UNKNOWN] =
-          (it.get("notification") as? HashMap<String, String>)?.let {
+          (it["notification"] as? HashMap<String, String>)?.let { notification ->
             NotificationDataModel(
-              message = it.get("message") ?: "",
-              actionUri = it.get("actionUri")
+              message = notification["message"] ?: "",
+              actionUri = notification["actionUri"]
             )
-          } to (it.get("extraData") as? HashMap<String, *>)
+          } to (it["extraData"] as? HashMap<String, *>)
       }
       geofencesHolder.geofenceModels.add(
         GeofenceModel(
           typeTransactions = transactionTypes,
-          expiredDuration = (it.get("expiredDuration") as Double).toInt(),
-          name = it.get("name") as String,
-          position = (it.get("position") as HashMap<*, *>).let {
+          expiredDuration = (geofence["expiredDuration"] as Double).toInt(),
+          name = geofence["name"] as String,
+          position = (geofence["position"] as HashMap<*, *>).let {
             Coordinate(
-              longitude = it.get("longitude") as Double,
-              latitude = it.get("latitude") as Double,
-              radius = (it.get("radius") as Double).toInt()
+              longitude = it["longitude"] as Double,
+              latitude = it["latitude"] as Double,
+              radius = (it["radius"] as Double).toInt()
             )
           },
           id = mGeofenceHelper.generateId()
@@ -185,6 +186,7 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
     mGeofenceHelper.stopMonitoring(promise)
   }
 
+  @Suppress("UNCHECKED_CAST")
   @ReactMethod
   fun removeGeofences(filter: ReadableArray, promise: Promise) {
     Log.i(TAG, String.format("Remove geofences, filter: %s", filter))
@@ -197,20 +199,22 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
     promise.resolve(mGeofenceHelper.isExistsGeofence(id))
   }
 
+  @Suppress("UNCHECKED_CAST")
   @ReactMethod
   fun isExistsGeofenceByListId(ids: ReadableArray, promise: Promise) {
     Log.i(TAG, String.format("Is exists Geofence by list ids: %s", ids))
     promise.resolve(mGeofenceHelper.isExistsGeofence(ids as? Array<String> ?: arrayOf()))
   }
 
+  @Suppress("UNCHECKED_CAST")
   @ReactMethod
   fun isExistsGeofenceByListCoordinate(coordinates: ReadableArray, promise: Promise) {
     val coordinatesRefactor = coordinates.toArrayList().map {
       it as HashMap<String, *>
       Coordinate(
-        longitude = it.get("longitude") as Double,
-        latitude = it.get("latitude") as Double,
-        radius = (it.get("radius") as? Double)?.toInt()
+        longitude = it["longitude"] as Double,
+        latitude = it["latitude"] as Double,
+        radius = (it["radius"] as? Double)?.toInt()
       )
     }
     val result = mGeofenceHelper.isExistsGeofence(coordinatesRefactor.toTypedArray()).let {
@@ -230,7 +234,7 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
     val coordinateModel = Coordinate(
       longitude = coordinate.getDouble("longitude"),
       latitude = coordinate.getDouble("latitude"),
-      radius = coordinate?.getDouble("radius")?.toInt()
+      radius = coordinate.getDouble("radius").toInt()
     )
     val result =
       mGeofenceHelper.isExistsGeofence(coordinateModel).atGeofenceHolderModelListPosition >= 0

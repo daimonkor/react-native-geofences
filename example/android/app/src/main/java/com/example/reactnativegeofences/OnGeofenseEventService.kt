@@ -9,7 +9,6 @@ import com.facebook.react.bridge.Arguments
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.icebergteam.timberjava.Timber
-import com.reactnativegeofences.GeofenceHelper
 import com.reactnativegeofences.GeofenceHelper.Companion.GEOFENCES_LIST_KEY
 import com.reactnativegeofences.GeofenceHelper.Companion.TRANSITION_TYPE_KEY
 import com.reactnativegeofences.models.GeofenceModel
@@ -19,13 +18,9 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import okhttp3.logging.HttpLoggingInterceptor
-import com.facebook.react.modules.core.DeviceEventManagerModule
-
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.reactnativegeofences.utils.ArrayUtil
-import com.reactnativegeofences.utils.MapUtil
-
 
 data class RequestModel(
   val headers: Map<String, Any?>?,
@@ -40,8 +35,8 @@ class OnGeofenseEventService : JobService() {
   init {
     val logging = HttpLoggingInterceptor()
     logging.setLevel(HttpLoggingInterceptor.Level.BODY)
-    logging.redactHeader("Authorization");
-    logging.redactHeader("Cookie");
+    logging.redactHeader("Authorization")
+    logging.redactHeader("Cookie")
     client = OkHttpClient.Builder()
       .addInterceptor(logging)
       .build()
@@ -100,14 +95,14 @@ class OnGeofenseEventService : JobService() {
       geofencesList?.map {
         it.typeTransactions.entries
       }?.forEach {
-        it.filter {
-          it.key.typeTransaction == transitionType
-        }.forEach {
+        it.filter {  typeTransaction ->
+          typeTransaction.key.typeTransaction == transitionType
+        }.forEach { typeTransaction ->
           Gson().fromJson<RequestModel>(
-            Gson().toJson(it.value.second),
+            Gson().toJson(typeTransaction.value.second),
             object : TypeToken<RequestModel>() {}.type
-          )?.let {
-            this.post(it, object : Callback {
+          )?.let { requestModel ->
+            this.post(requestModel, object : Callback {
               override fun onFailure(call: Call, e: IOException) {
                 Timber.e("Error: %s", e)
                 //  GeofenceHelper(applicationContext).stopMonitoring(null)
@@ -116,10 +111,9 @@ class OnGeofenseEventService : JobService() {
               override fun onResponse(call: Call, response: Response) {
                 Timber.i("Response: %s", response.body?.toString() ?: "no response")
               }
-
             })
           }
-          Timber.i("Request model: $it $transitionType")
+          Timber.i("Request model: $typeTransaction $transitionType")
         }
       }
       val action =

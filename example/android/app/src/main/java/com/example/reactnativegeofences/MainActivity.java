@@ -7,7 +7,7 @@ import android.content.IntentFilter;
 
 
 public class MainActivity extends ReactActivity {
-  private ShutDownReceiver mReceiver = new ShutDownReceiver();
+  private final ShutDownReceiver mReceiver = new ShutDownReceiver();
 
   /**
    * Returns the name of the main component registered from JavaScript. This is used to schedule

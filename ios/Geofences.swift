@@ -455,12 +455,13 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         let requestedBefore = self.isFlaggedAsRequested(handlerUniqueId: self.handlerUniqueId());
         if (currentStatus != .notDetermined && (currentStatus == .authorizedWhenInUse && requestedBefore)) {
             callback?(currentStatus)
+            return
         }else if(!requestedBefore){
             self.locationManager.requestAlwaysAuthorization()
-            self.flagAsRequested (handlerUniqueId: self.handlerUniqueId());
         } else{
             callback?(currentStatus)
         }
+        self.flagAsRequested (handlerUniqueId: self.handlerUniqueId());
     }
     
     private func generateId() -> String {

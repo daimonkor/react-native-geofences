@@ -43,8 +43,8 @@ class GeofenceHelper(private val context: Context) {
 
   fun addGeofences(geofencesHolderList: List<GeofenceHolderModel>) {
     geofencesHolderList.forEachIndexed { index, it ->
-      it.geofenceModels.forEachIndexed { index2, it ->
-        val indexes = this.isExistsGeofence(it.position, true)
+      it.geofenceModels.forEachIndexed { _, geofenceModel ->
+        val indexes = this.isExistsGeofence(geofenceModel.position, true)
         if (indexes.atGeofenceHolderModelListPosition >= 0 && mGeofencesHolderList.size > 0 && mGeofencesHolderList.size >= indexes.atGeofenceHolderModelListPosition - 1) {
           mGeofencesHolderList[indexes.atGeofenceHolderModelListPosition].geofenceModels.removeAt(
             indexes.atGeofenceModelListPosition
@@ -85,23 +85,23 @@ class GeofenceHelper(private val context: Context) {
         }
         mGeofencingClient.addGeofences(GeofencingRequest.Builder().apply {
           addGeofences(
-            it.geofenceModels.map {
-              geofenceIdList.add(it.id)
+            it.geofenceModels.map { geofenceModel ->
+              geofenceIdList.add(geofenceModel.id)
               Geofence.Builder()
-                .setRequestId(it.id)
+                .setRequestId(geofenceModel.id)
                 .setCircularRegion(
-                  it.position.latitude,
-                  it.position.longitude,
-                  it.position.radius?.toFloat() ?: 400f
+                  geofenceModel.position.latitude,
+                  geofenceModel.position.longitude,
+                  geofenceModel.position.radius?.toFloat() ?: 400f
                 )
-                .setExpirationDuration(it.expiredDuration.toLong())
-                .setTransitionTypes(it.typeTransactions.map {
-                  it.key
+                .setExpirationDuration(geofenceModel.expiredDuration.toLong())
+                .setTransitionTypes(geofenceModel.typeTransactions.map {typeTransaction ->
+                  typeTransaction.key
                 }.let {
                   var type = it.first().typeTransaction
                   it.forEachIndexed { index, i ->
                     if (index != 0) {
-                      type = type or i.typeTransaction;
+                      type = type or i.typeTransaction
                     }
                   }
                   type
@@ -271,8 +271,8 @@ class GeofenceHelper(private val context: Context) {
           promise.reject(it)
         }.addOnSuccessListener {
           mGeofencesHolderList.forEach {
-            it.geofenceModels.removeAll(it.geofenceModels.filter {
-              filter.contains(it.id)
+            it.geofenceModels.removeAll(it.geofenceModels.filter { geofenceModel ->
+              filter.contains(geofenceModel.id)
             }.toSet())
           }
           mGeofencesHolderList = mGeofencesHolderList.filter {
@@ -341,7 +341,7 @@ class GeofenceHelper(private val context: Context) {
     saveGeofencesDataToCache(mGeofencesHolderList, mIsStartedMonitoring, mBootCompleted)
   }
 
-  fun loadCache() {
+  private fun loadCache() {
     this.getGeofencesDataFromCache().let {
       this.mGeofencesHolderList = it.geofencesHolderList as ArrayList<GeofenceHolderModel>
       this.mIsStartedMonitoring = it.isStartedMonitoring
