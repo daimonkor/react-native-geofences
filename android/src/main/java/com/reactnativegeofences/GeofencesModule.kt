@@ -84,7 +84,7 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
   @ReactMethod
   fun requestPermissions(permission: String, rationaleDialog: ReadableMap, promise: Promise) {
     Log.i(TAG, String.format("Request permission %s, %s", permission, rationaleDialog))
-    if(this.currentActivity as PermissionAwareActivity? == null){
+    if (this.currentActivity as PermissionAwareActivity? == null) {
       promise.reject(Throwable("Activity is null"))
       return
     }
@@ -98,21 +98,34 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
         )
       }
     }
-    if (permission == Manifest.permission.ACCESS_BACKGROUND_LOCATION) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && permission == Manifest.permission.ACCESS_BACKGROUND_LOCATION) {
       if ((this.currentActivity as PermissionAwareActivity?)?.shouldShowRequestPermissionRationale(
           Manifest.permission.ACCESS_BACKGROUND_LOCATION
         ) == true
       ) {
         AlertDialog.Builder(this.currentActivity!!)
-          .setTitle(rationaleDialog.getString("title") ?: this.currentActivity!!.resources.getString(R.string.app_name))
-          .setMessage(rationaleDialog.getString("message") ?: this.currentActivity!!.resources.getString(R.string.rationale_message, this.currentActivity!!.resources.getString(R.string.app_name)))
+          .setTitle(
+            rationaleDialog.getString("title")
+              ?: this.currentActivity!!.resources.getString(R.string.app_name)
+          )
+          .setMessage(
+            rationaleDialog.getString("message") ?: this.currentActivity!!.resources.getString(
+              R.string.rationale_message,
+              this.currentActivity!!.resources.getString(R.string.app_name)
+            )
+          )
           .setPositiveButton(
-            rationaleDialog.getString("confirmLabel") ?: this.currentActivity!!.resources.getString(R.string.confirm)
+            rationaleDialog.getString("confirmLabel") ?: this.currentActivity!!.resources.getString(
+              R.string.confirm
+            )
           ) { dialog, _ ->
             dialog.dismiss()
             requestPermission()
           }
-          .setNegativeButton(rationaleDialog.getString("cancelLabel") ?: this.currentActivity!!.resources.getString(R.string.deny)) { dialog, _ ->
+          .setNegativeButton(
+            rationaleDialog.getString("cancelLabel")
+              ?: this.currentActivity!!.resources.getString(R.string.deny)
+          ) { dialog, _ ->
             dialog.dismiss()
             promise.resolve(MapUtil.toWritableMap(mutableMapOf(permission to false) as Map<String, Any>?))
           }
@@ -121,8 +134,17 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
       } else {
         requestPermission()
       }
-    } else {
+    } else if (permission != Manifest.permission.ACCESS_BACKGROUND_LOCATION) {
       requestPermission()
+    } else {
+      val permissionsResult = WritableNativeMap()
+      permissionsResult.putBoolean(
+        permission,
+        true
+      )
+      val result = WritableNativeMap()
+      result.putMap("result", permissionsResult)
+      this.mPermissionsPromise?.resolve(result)
     }
   }
 
@@ -134,11 +156,18 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
         permission.ACCESS_FINE_LOCATION,
         permission.ACCESS_BACKGROUND_LOCATION
       ).toList()
-
       val result = WritableNativeMap()
       val permissionsResult = WritableNativeMap()
       var countGrantedPermissions = 0
       permissions.forEach { permission ->
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && permission == Manifest.permission.ACCESS_BACKGROUND_LOCATION) {
+          countGrantedPermissions += 1
+          permissionsResult.putBoolean(
+            permission,
+            true
+          )
+          return@forEach
+        }
         val check = it.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
         countGrantedPermissions += if (check) 1 else 0
         permissionsResult.putBoolean(
@@ -166,7 +195,14 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun notificationPermissionStatus(promise: Promise) {
-    promise.resolve(MapUtil.toWritableMap(mapOf<String, Any?>("settings" to null, "authorizationStatus" to 2)))
+    promise.resolve(
+      MapUtil.toWritableMap(
+        mapOf<String, Any?>(
+          "settings" to null,
+          "authorizationStatus" to 2
+        )
+      )
+    )
   }
 
   @ReactMethod
@@ -220,12 +256,14 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
     val result = mGeofenceHelper.isExistsGeofence(coordinatesRefactor.toTypedArray()).let {
       it.isNotEmpty() && !it.contains(GeofenceAtCache(-1, -1))
     }
-    Log.i(TAG, String.format(
-      "Is exists Geofence by list coordinates: %s, %s, %s",
-      coordinates,
-      result,
-      mGeofenceHelper.mGeofencesHolderList
-    ))
+    Log.i(
+      TAG, String.format(
+        "Is exists Geofence by list coordinates: %s, %s, %s",
+        coordinates,
+        result,
+        mGeofenceHelper.mGeofencesHolderList
+      )
+    )
     promise.resolve(result)
   }
 
@@ -244,7 +282,10 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun isStartedMonitoring(promise: Promise) {
-    Log.i(TAG, String.format("Is started monitoring: %s", this.mGeofenceHelper.mIsStartedMonitoring))
+    Log.i(
+      TAG,
+      String.format("Is started monitoring: %s", this.mGeofenceHelper.mIsStartedMonitoring)
+    )
     promise.resolve(this.mGeofenceHelper.mIsStartedMonitoring && this.mGeofenceHelper.mBootCompleted)
   }
 
