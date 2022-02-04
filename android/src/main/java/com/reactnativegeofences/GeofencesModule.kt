@@ -98,6 +98,7 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
         )
       }
     }
+    val status = if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && permission == Manifest.permission.ACCESS_BACKGROUND_LOCATION) true else (this.currentActivity as PermissionAwareActivity?)?.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && permission == Manifest.permission.ACCESS_BACKGROUND_LOCATION) {
       if ((this.currentActivity as PermissionAwareActivity?)?.shouldShowRequestPermissionRationale(
           Manifest.permission.ACCESS_BACKGROUND_LOCATION
@@ -134,9 +135,7 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
       } else {
         requestPermission()
       }
-    } else if (permission != Manifest.permission.ACCESS_BACKGROUND_LOCATION) {
-      requestPermission()
-    } else {
+    } else if (permission != Manifest.permission.ACCESS_BACKGROUND_LOCATION && status || status) {
       val permissionsResult = WritableNativeMap()
       permissionsResult.putBoolean(
         permission,
@@ -144,7 +143,9 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
       )
       val result = WritableNativeMap()
       result.putMap("result", permissionsResult)
-      this.mPermissionsPromise?.resolve(result)
+      promise.resolve(result)
+    } else {
+      requestPermission()
     }
   }
 
