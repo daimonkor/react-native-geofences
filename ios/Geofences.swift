@@ -24,7 +24,6 @@ class Geofences: RCTEventEmitter, CLLocationManagerDelegate, UNUserNotificationC
         }
         self.loadCache()
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        locationManager.allowsBackgroundLocationUpdates = true
         locationManager.pausesLocationUpdatesAutomatically = false
         locationManager.delegate = self
         
