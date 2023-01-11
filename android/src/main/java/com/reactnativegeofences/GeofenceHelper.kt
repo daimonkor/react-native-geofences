@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.facebook.react.bridge.Promise
@@ -18,7 +19,6 @@ import com.google.android.gms.location.LocationServices
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.reactnativegeofences.models.*
-import java.lang.Exception
 
 class GeofenceHelper(private val context: Context) {
   var mGeofencesHolderList = ArrayList<GeofenceHolderModel>()
@@ -118,12 +118,18 @@ class GeofenceHelper(private val context: Context) {
             trigger
           })
         }.build(), Intent(this.context, GeofenceBroadcastReceiver::class.java).let {
-          PendingIntent.getBroadcast(
-            this.context,
-            0,
-            it,
-            PendingIntent.FLAG_UPDATE_CURRENT
-          )
+          // Use FLAG_UPDATE_CURRENT so that you get the same pending intent back when calling
+          // addGeofences() and removeGeofences().
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.getBroadcast(
+              this.context,
+              0,
+              it,
+              PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+            )
+          } else {
+            PendingIntent.getBroadcast(this.context, 0, it, PendingIntent.FLAG_UPDATE_CURRENT)
+          }
         }).addOnSuccessListener {
           Log.i(
             TAG, "Start create geofences and start current geofences monitoring successfully"
@@ -196,12 +202,18 @@ class GeofenceHelper(private val context: Context) {
           this.context,
           GeofenceBroadcastReceiver::class.java
         ).let {
-          PendingIntent.getBroadcast(
-            this.context,
-            0,
-            it,
-            PendingIntent.FLAG_UPDATE_CURRENT
-          )
+          // Use FLAG_UPDATE_CURRENT so that you get the same pending intent back when calling
+          // addGeofences() and removeGeofences().
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.getBroadcast(
+              this.context,
+              0,
+              it,
+              PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+            )
+          } else {
+            PendingIntent.getBroadcast(this.context, 0, it, PendingIntent.FLAG_UPDATE_CURRENT)
+          }
         }).addOnFailureListener {
         Log.e(TAG, String.format("Failure stop geofences monitoring: %s", it))
         promise?.reject(it)
@@ -293,12 +305,18 @@ class GeofenceHelper(private val context: Context) {
             this.context,
             GeofenceBroadcastReceiver::class.java
           ).let {
-            PendingIntent.getBroadcast(
-              this.context,
-              0,
-              it,
-              PendingIntent.FLAG_UPDATE_CURRENT
-            )
+            // Use FLAG_UPDATE_CURRENT so that you get the same pending intent back when calling
+            // addGeofences() and removeGeofences().
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+              PendingIntent.getBroadcast(
+                this.context,
+                0,
+                it,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+              )
+            } else {
+              PendingIntent.getBroadcast(this.context, 0, it, PendingIntent.FLAG_UPDATE_CURRENT)
+            }
           }).addOnFailureListener {
           Log.e(
             TAG,
