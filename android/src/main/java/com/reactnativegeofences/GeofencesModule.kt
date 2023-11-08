@@ -11,6 +11,7 @@ import com.facebook.react.modules.core.PermissionAwareActivity
 import com.facebook.react.bridge.WritableNativeMap
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AlertDialog
+import com.facebook.react.bridge.UiThreadUtil.runOnUiThread
 import com.google.gson.Gson
 import com.reactnativegeofences.models.*
 import com.reactnativegeofences.utils.MapUtil
@@ -104,34 +105,37 @@ class GeofencesModule(reactContext: ReactApplicationContext) :
           Manifest.permission.ACCESS_BACKGROUND_LOCATION
         ) == true
       ) {
-        AlertDialog.Builder(this.currentActivity!!)
-          .setTitle(
-            rationaleDialog.getString("title")
-              ?: this.currentActivity!!.resources.getString(R.string.app_name)
-          )
-          .setMessage(
-            rationaleDialog.getString("message") ?: this.currentActivity!!.resources.getString(
-              R.string.rationale_message,
-              this.currentActivity!!.resources.getString(R.string.app_name)
-            )
-          )
-          .setPositiveButton(
-            rationaleDialog.getString("confirmLabel") ?: this.currentActivity!!.resources.getString(
-              R.string.confirm
-            )
-          ) { dialog, _ ->
-            dialog.dismiss()
-            requestPermission()
+        runOnUiThread{
+            AlertDialog.Builder(this.currentActivity!!)
+              .setTitle(
+                rationaleDialog.getString("title")
+                  ?: this.currentActivity!!.resources.getString(R.string.app_name)
+              )
+              .setMessage(
+                rationaleDialog.getString("message") ?: this.currentActivity!!.resources.getString(
+                  R.string.rationale_message,
+                  this.currentActivity!!.resources.getString(R.string.app_name)
+                )
+              )
+              .setPositiveButton(
+                rationaleDialog.getString("confirmLabel")
+                  ?: this.currentActivity!!.resources.getString(
+                    R.string.confirm
+                  )
+              ) { dialog, _ ->
+                dialog.dismiss()
+                requestPermission()
+              }
+              .setNegativeButton(
+                rationaleDialog.getString("cancelLabel")
+                  ?: this.currentActivity!!.resources.getString(R.string.deny)
+              ) { dialog, _ ->
+                dialog.dismiss()
+                promise.resolve(MapUtil.toWritableMap(mutableMapOf(permission to false) as Map<String, Any>?))
+              }
+              .create()
+              .show()
           }
-          .setNegativeButton(
-            rationaleDialog.getString("cancelLabel")
-              ?: this.currentActivity!!.resources.getString(R.string.deny)
-          ) { dialog, _ ->
-            dialog.dismiss()
-            promise.resolve(MapUtil.toWritableMap(mutableMapOf(permission to false) as Map<String, Any>?))
-          }
-          .create()
-          .show()
       } else {
         requestPermission()
       }
