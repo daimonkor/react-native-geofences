@@ -347,6 +347,14 @@ Register your service at react native *AndroidManifest.xml*
 <!-- android:resource="@mipmap/ic_launcher" /> --> <!--Your or Android OS drawable or mipmap
 ```
 
+Add strings to proguard-rules.pro
+```kotlin
+-keep class com.reactnativegeofences.RequestModel { *; }
+-keepclassmembers class com.reactnativegeofences.RequestModel{ *; }
+-keep class com.reactnativegeofences.ResponseModel { *; }
+-keepclassmembers class com.reactnativegeofences.ResponseModel{ *; }
+```
+
 ### iOS
 
 
